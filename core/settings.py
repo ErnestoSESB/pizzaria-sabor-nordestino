@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 import dj_database_url
-from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-wstqx6o6=6ydu%q^5t1mag4c=%u7rd-+!rp-%9u3w5$@^99n%o')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-wstqx6o6=6ydu%q^5t1mag4c=%u7rd-+!rp-%9u3w5$@^99n%o')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # Temporariamente True para debug
