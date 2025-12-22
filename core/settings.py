@@ -25,18 +25,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-wstqx6o6=6ydu%q^5t1mag4c=%u7rd-+!rp-%9u3w5$@^99n%o')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# Temporariamente True para debug
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['pizzaria-sabor-nordestino-production.up.railway.app', 'sabornordestino.online', 'www.sabornordestino.online', 'localhost', '127.0.0.1']
 
 # CSRF e segurança
-if not DEBUG:
-    CSRF_TRUSTED_ORIGINS = [
-        'https://*.railway.app',
-        'https://sabornordestino.online',
-        'https://www.sabornordestino.online'
-    ]
+CSRF_TRUSTED_ORIGINS = [
+    'https://pizzaria-sabor-nordestino-production.up.railway.app',
+    'https://sabornordestino.online',
+    'https://www.sabornordestino.online',
+]
 
 
 # Application definition
