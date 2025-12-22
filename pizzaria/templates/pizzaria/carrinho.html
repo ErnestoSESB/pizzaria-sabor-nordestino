@@ -1,0 +1,161 @@
+{% extends 'pizzaria/base.html' %}
+{% block title %}Meu Pedido - Pizzaria{% endblock %}
+{% block header %}Meu Pedido{% endblock %}
+{% block header_sub %}<p>Revise seu pedido antes de finalizar</p>{% endblock %}
+{% block content %}
+  <a href="{% url 'escolher_sabores' %}" class="btn btn-secondary">← Adicionar Mais Pizzas</a>
+  
+  {% if itens %}
+    {% for item in itens %}
+    <div class="card">
+      {% if item.sabores_data %}
+        <h3>Pizza {{ item.sabores_data.descricao }}</h3>
+        <p style="color: var(--vermelho);"><strong>{{ item.sabores_data.num_sabores }} sabor{% if item.sabores_data.num_sabores > 1 %}es{% endif %}</strong></p>
+        <ul style="margin-top: 10px;">
+          {% for nome in item.sabores_data.nomes %}
+            <li>{{ nome }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <h3>{{ item.pizza.nome }}</h3>
+        <p>{{ item.pizza.ingredientes }}</p>
+      {% endif %}
+      
+      <p><strong>Tamanho:</strong> 
+        {% if item.tamanho == 'P' %}Pequena
+        {% elif item.tamanho == 'M' %}Média
+        {% else %}Grande{% endif %}
+      </p>
+      
+      {% if item.borda_chocolate or item.catupiry_cima != 'nao' or item.catupiry_borda %}
+      <div style="background: var(--cinza-claro); padding: 10px; border-radius: 8px; margin: 10px 0;">
+        <p style="margin: 0;"><strong>Adicionais:</strong></p>
+        <ul style="margin: 5px 0 0 20px;">
+          {% if item.borda_chocolate %}<li>Borda de Chocolate</li>{% endif %}
+          {% if item.catupiry_cima == 'inteira' %}<li>Catupiry por Cima (Inteira)</li>{% endif %}
+          {% if item.catupiry_cima == 'metade' %}<li>Catupiry por Cima (Metade)</li>{% endif %}
+          {% if item.catupiry_borda %}<li>Catupiry na Borda</li>{% endif %}
+        </ul>
+      </div>
+      {% endif %}
+      
+      <p><strong>Quantidade:</strong> {{ item.quantidade }}</p>
+      <p><strong>Preço unitário:</strong> R$ {{ item.preco }}</p>
+      <p class="price">Subtotal: R$ {{ item.total }}</p>
+      <a href="{% url 'carrinho_remover' item.item_id %}" class="btn btn-secondary">Remover</a>
+    </div>
+    {% endfor %}
+    
+    <div class="card" style="background-color: var(--cinza-claro);">
+      <h3>Resumo do Pedido</h3>
+      <p style="font-size: 1.2rem; margin: 10px 0;">Subtotal: R$ <span id="subtotal">{{ carrinho.get_total }}</span></p>
+      <p style="font-size: 1.2rem; margin: 10px 0; color: var(--vermelho);">Taxa de Entrega: R$ <span id="taxa-entrega">0,00</span></p>
+      <hr style="border: 1px solid #ddd; margin: 15px 0;">
+      <p class="price" style="font-size: 1.5rem;">Total: R$ <span id="total-final">{{ carrinho.get_total }}</span></p>
+    </div>
+
+    <div class="card">
+      <h3>Dados para Entrega</h3>
+      <form method="POST" action="{% url 'carrinho_finalizar' %}" id="form-pedido">
+        {% csrf_token %}
+        
+        <div style="margin-bottom: 20px;">
+          <label for="nome" style="display: block; margin-bottom: 5px; font-weight: bold;">Nome Completo: <span style="color: #d32f2f;">*</span></label>
+          <input type="text" id="nome" name="nome" required minlength="3" placeholder="Digite seu nome completo" style="width: 100%; padding: 12px; border: 2px solid var(--cinza-claro); border-radius: 8px; font-size: 16px;">
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <label for="local_entrega" style="display: block; margin-bottom: 5px; font-weight: bold;">Local de Entrega:</label>
+          <select id="local_entrega" name="local_entrega" required style="width: 100%; padding: 12px; border: 2px solid var(--cinza-claro); border-radius: 8px; font-size: 16px;">
+            <option value="">Selecione o local...</option>
+            <option value="local" data-taxa="0">Retirar no local (sem taxa)</option>
+            {% for taxa in taxas_entrega %}
+            <option value="{{ taxa.id }}" data-taxa="{{ taxa.taxa }}">{{ taxa.nome }} - R$ {{ taxa.taxa }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <label for="telefone" style="display: block; margin-bottom: 5px; font-weight: bold;">WhatsApp: <span style="color: #d32f2f;">*</span></label>
+          <input type="tel" id="telefone" name="telefone" required pattern="[0-9]{10,11}" placeholder="(84) 99999-9999" maxlength="15" style="width: 100%; padding: 12px; border: 2px solid var(--cinza-claro); border-radius: 8px; font-size: 16px;">
+          <small style="color: var(--cinza-escuro); font-size: 13px;">Informe um número com DDD</small>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <label for="endereco" style="display: block; margin-bottom: 5px; font-weight: bold;">Endereço de Entrega: <span style="color: #d32f2f;">*</span></label>
+          <textarea id="endereco" name="endereco" rows="3" required minlength="10" placeholder="Rua, número, bairro, ponto de referência..." style="width: 100%; padding: 12px; border: 2px solid var(--cinza-claro); border-radius: 8px; font-size: 16px; resize: vertical;"></textarea>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <label for="observacoes" style="display: block; margin-bottom: 5px; font-weight: bold;">Observações (opcional):</label>
+          <textarea id="observacoes" name="observacoes" rows="3" placeholder="Ex: Tirar cebola, borda recheada, sem azeitona..." style="width: 100%; padding: 12px; border: 2px solid var(--cinza-claro); border-radius: 8px; font-size: 16px; resize: vertical;"></textarea>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold;">Forma de Pagamento:</label>
+          <select name="pagamento" required style="width: 100%; padding: 12px; border: 2px solid var(--cinza-claro); border-radius: 8px; font-size: 16px;">
+            <option value="">Selecione...</option>
+            <option value="Dinheiro">Dinheiro</option>
+            <option value="PIX">PIX</option>
+            <option value="Cartão na entrega">Cartão na entrega</option>
+          </select>
+        </div>
+
+        <div id="troco-container" style="margin-bottom: 20px; display: none;">
+          <label for="troco" style="display: block; margin-bottom: 5px; font-weight: bold;">Troco para quanto?</label>
+          <input type="text" id="troco" name="troco" placeholder="Ex: 50,00" style="width: 100%; padding: 12px; border: 2px solid var(--cinza-claro); border-radius: 8px; font-size: 16px;">
+        </div>
+
+        <button type="submit" class="btn" id="btn-finalizar" style="width: 100%; font-size: 18px;">✓ Enviar Pedido pelo WhatsApp</button>
+      </form>
+    </div>
+
+    <script>
+      // Validação e formatação de telefone
+      document.getElementById('telefone').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length > 11) value = value.slice(0, 11);
+        if (value.length > 2) {
+          value = '(' + value.slice(0, 2) + ') ' + value.slice(2);
+        }
+        if (value.length > 10) {
+          value = value.slice(0, 10) + '-' + value.slice(10);
+        }
+        e.target.value = value;
+      });
+
+      // Feedback visual no submit
+      document.getElementById('form-pedido').addEventListener('submit', function(e) {
+        const btn = document.getElementById('btn-finalizar');
+        btn.textContent = 'Enviando...';
+        btn.disabled = true;
+      });
+      
+      const subtotal = parseFloat('{{ carrinho.get_total }}'.replace(',', '.'));
+      
+      document.getElementById('local_entrega').addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const taxa = parseFloat(selectedOption.dataset.taxa || 0);
+        const totalFinal = subtotal + taxa;
+        
+        document.getElementById('taxa-entrega').textContent = taxa.toFixed(2).replace('.', ',');
+        document.getElementById('total-final').textContent = totalFinal.toFixed(2).replace('.', ',');
+      });
+      
+      document.querySelector('select[name="pagamento"]').addEventListener('change', function() {
+        const trocoContainer = document.getElementById('troco-container');
+        if (this.value === 'Dinheiro') {
+          trocoContainer.style.display = 'block';
+        } else {
+          trocoContainer.style.display = 'none';
+        }
+      });
+    </script>
+  {% else %}
+    <div class="card">
+      <h3>Pedido Vazio</h3>
+      <p>Você ainda não adicionou nenhuma pizza ao seu pedido.</p>
+      <a href="{% url 'cardapio' %}" class="btn">Ver Cardápio</a>
+    </div>
+  {% endif %}
+{% endblock %}

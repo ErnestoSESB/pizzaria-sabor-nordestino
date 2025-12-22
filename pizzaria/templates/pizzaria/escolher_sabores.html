@@ -1,0 +1,189 @@
+{% extends 'pizzaria/base.html' %}
+{% block title %}Escolher Sabores - Pizzaria{% endblock %}
+{% block header %}Faça seu Pedido{% endblock %}
+{% block header_sub %}<p>Personalize do seu jeito</p>{% endblock %}
+{% block content %}
+
+<form method="POST" action="{% url 'carrinho_adicionar_pizza' %}" id="form-pizza">
+  {% csrf_token %}
+  
+  <!-- Tamanho -->
+  <div class="card">
+    <h3>1. Escolha o Tamanho</h3>
+    <select name="tamanho" id="tamanho" required onchange="calcularPreco()" style="width: 100%; padding: 12px; border: 2px solid var(--cinza-claro); border-radius: 8px; font-size: 16px;">
+      <option value="">Selecione...</option>
+      <option value="P">Pequena - R$ 25,00</option>
+      <option value="M">Média - R$ 32,00</option>
+      <option value="G">Grande - R$ 39,00</option>
+    </select>
+  </div>
+
+  <!-- Sabores -->
+  <div class="card">
+    <h3>2. Quantos sabores?</h3>
+    <div style="display: flex; gap: 15px; margin: 20px 0; flex-wrap: wrap;">
+      <button type="button" onclick="mostrarSabores(1)" class="btn">1 Sabor</button>
+      <button type="button" onclick="mostrarSabores(2)" class="btn">2 Sabores (Meia-Meia)</button>
+      <button type="button" onclick="mostrarSabores(3)" class="btn">3 Sabores</button>
+    </div>
+  </div>
+  
+  <input type="hidden" name="num_sabores" id="num_sabores">
+  <div id="sabores-container"></div>
+  
+  <!-- Adicionais -->
+  <div class="card" id="adicionais-card" style="display: none;">
+    <h3>3. Adicionais (Opcional)</h3>
+    
+    <div style="margin: 15px 0;">
+      <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+        <input type="checkbox" name="borda_chocolate" id="borda_chocolate" onchange="controlarBordas(); calcularPreco()" style="width: 20px; height: 20px;">
+        <span><strong>Borda de Chocolate</strong> (P: +R$ 4 | M: +R$ 5 | G: +R$ 6)</span>
+      </label>
+    </div>
+
+    <div style="margin: 15px 0;">
+      <label style="display: block; margin-bottom: 5px; font-weight: bold;">Catupiry Original por Cima:</label>
+      <select name="catupiry_cima" id="catupiry_cima" onchange="calcularPreco()" style="width: 100%; padding: 12px; border: 2px solid var(--cinza-claro); border-radius: 8px; font-size: 16px;">
+        <option value="nao">Não</option>
+        <option value="metade">Metade (P: +R$ 5 | M: +R$ 6 | G: +R$ 7)</option>
+        <option value="inteira">Inteira (P: +R$ 10 | M: +R$ 12 | G: +R$ 14)</option>
+      </select>
+    </div>
+
+    <div style="margin: 15px 0;">
+      <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+        <input type="checkbox" name="catupiry_borda" id="catupiry_borda" onchange="controlarBordas(); calcularPreco()" style="width: 20px; height: 20px;">
+        <span><strong>Catupiry Original na Borda</strong> (P: +R$ 8 | M: +R$ 10 | G: +R$ 12)</span>
+      </label>
+    </div>
+  </div>
+  
+  <!-- Resumo -->
+  <!-- Resumo -->
+  <div class="card" id="resumo-card" style="display: none;">
+    <h3>Resumo do Pedido</h3>
+    <p id="resumo-texto"></p>
+    <p class="price" id="preco-final"></p>
+    <button type="submit" class="btn" style="width: 100%;">Adicionar ao Pedido</button>
+  </div>
+</form>
+
+<script>
+const pizzas = {{ pizzas_json|safe }};
+const pizzasEspeciais = {{ pizzas_especiais_json|safe }};
+
+function mostrarSabores(num) {
+  document.getElementById('num_sabores').value = num;
+  document.getElementById('adicionais-card').style.display = 'block';
+  
+  const container = document.getElementById('sabores-container');
+  container.innerHTML = '';
+  
+  for (let i = 1; i <= num; i++) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <h3>Sabor ${i}</h3>
+      <select name="sabor_${i}" id="sabor_${i}" required onchange="calcularPreco()" style="width: 100%; padding: 12px; border: 2px solid var(--cinza-claro); border-radius: 8px; font-size: 16px; margin-bottom: 10px;">
+        <option value="">Selecione...</option>
+        ${pizzas.map(p => `<option value="${p.id}" data-especial="${p.especial}">${p.nome}</option>`).join('')}
+      </select>
+      <div id="ingredientes_${i}" style="color: var(--cinza-escuro); font-size: 14px; margin-top: -5px;"></div>
+    `;
+    container.appendChild(card);
+    
+    // Mostrar ingredientes quando selecionar
+    document.getElementById(`sabor_${i}`).addEventListener('change', function() {
+      const pizzaId = this.value;
+      const pizza = pizzas.find(p => p.id == pizzaId);
+      document.getElementById(`ingredientes_${i}`).textContent = pizza ? pizza.ingredientes : '';
+    });
+  }
+  
+  document.getElementById('resumo-card').style.display = 'block';
+  document.getElementById('resumo-card').scrollIntoView({ behavior: 'smooth' });
+}
+
+function calcularPreco() {
+  const tamanho = document.getElementById('tamanho').value;
+  const numSabores = parseInt(document.getElementById('num_sabores').value) || 0;
+  
+  if (!tamanho || numSabores === 0) return;
+  
+  let sabores = [];
+  let saboresEspeciaisCount = 0;
+  
+  for (let i = 1; i <= numSabores; i++) {
+    const select = document.getElementById(`sabor_${i}`);
+    if (select && select.value) {
+      const option = select.options[select.selectedIndex];
+      const pizza = pizzas.find(p => p.id == select.value);
+      if (pizza) {
+        sabores.push(pizza.nome);
+        if (pizza.especial) saboresEspeciaisCount++;
+      }
+    }
+  }
+  
+  if (sabores.length !== numSabores) return;
+  
+  // Preço base
+  const precosBase = {'P': 25.00, 'M': 32.00, 'G': 39.00};
+  let preco = precosBase[tamanho];
+  
+  // Sabores especiais
+  if (saboresEspeciaisCount > 0) {
+    if (saboresEspeciaisCount === numSabores) {
+      preco += 4.00; // Toda especial
+    } else {
+      preco += 2.00; // Metade especial
+    }
+  }
+  
+  // Borda chocolate
+  if (document.getElementById('borda_chocolate').checked) {
+    const bordas = {'P': 4.00, 'M': 5.00, 'G': 6.00};
+    preco += bordas[tamanho];
+  }
+  
+  // Catupiry por cima
+  const catupiryCima = document.getElementById('catupiry_cima').value;
+  if (catupiryCima === 'inteira') {
+    const catupiry = {'P': 10.00, 'M': 12.00, 'G': 14.00};
+    preco += catupiry[tamanho];
+  } else if (catupiryCima === 'metade') {
+    const catupiry = {'P': 5.00, 'M': 6.00, 'G': 7.00};
+    preco += catupiry[tamanho];
+  }
+  
+  // Catupiry na borda
+  if (document.getElementById('catupiry_borda').checked) {
+    const catupiry = {'P': 8.00, 'M': 10.00, 'G': 12.00};
+    preco += catupiry[tamanho];
+  }
+  
+  // Mostrar resumo
+  const tamanhoNome = {'P': 'Pequena', 'M': 'Média', 'G': 'Grande'};
+  let descricao = `Pizza ${tamanhoNome[tamanho]} - ${sabores.join(' / ')}`;
+  
+  document.getElementById('resumo-texto').textContent = descricao;
+  document.getElementById('preco-final').textContent = `R$ ${preco.toFixed(2)}`;
+}
+
+function controlarBordas() {
+  const bordaChocolate = document.getElementById('borda_chocolate');
+  const catupiryborda = document.getElementById('catupiry_borda');
+  
+  // Se marcar borda de chocolate, desmarcar catupiry na borda
+  if (bordaChocolate.checked && catupiryborda.checked) {
+    if (event.target.id === 'borda_chocolate') {
+      catupiryborda.checked = false;
+    } else {
+      bordaChocolate.checked = false;
+    }
+  }
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends 'pizzaria/base.html' %}
+{% block title %}Contato - Pizzaria{% endblock %}
+{% block header %}Fale Conosco{% endblock %}
+{% block header_sub %}<p>Estamos prontos para atender você!</p>{% endblock %}
+{% block content %}
+  <a href="{% url 'index' %}" class="btn btn-secondary">← Voltar ao Início</a>
+  
+  <div class="card">
+    <h3>Nosso Endereço</h3>
+    <p><strong>Av. Ivan Cavalcante - 21</strong></p>
+    <p>Lucrécia - RN</p>
+  </div>
+  
+  <div class="card">
+    <h3>Horário de Funcionamento</h3>
+    <p><strong>Terça a Domingo:</strong> 18:30h às 22:00h</p>
+    <p style="color: var(--cinza-escuro);">Segunda-feira: Fechado</p>
+  </div>
+  
+  <div class="card">
+    <h3>Contato</h3>
+    <p><strong>Telefone/WhatsApp:</strong></p>
+    <p>(84) 99034-6414</p>
+    <p>(84) 99035-7715</p>
+    <a class="btn" href="https://wa.me/5584999852976?text=Olá,%20gostaria%20de%20fazer%20um%20pedido!" target="_blank">Falar no WhatsApp</a>
+  </div>
+{% endblock %}

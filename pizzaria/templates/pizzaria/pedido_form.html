@@ -1,0 +1,50 @@
+{% extends 'pizzaria/base.html' %}
+{% block title %}Registrar Novo Pedido{% endblock %}
+{% block header %}Registrar Novo Pedido{% endblock %}
+{% block header_sub %}<p>Registre pedidos recebidos pelo WhatsApp</p>{% endblock %}
+{% block content %}
+  <a href="{% url 'painel_pedidos' %}" class="btn btn-secondary">← Voltar</a>
+  
+  <div class="card">
+    <form method="post" id="formPedido">
+      {% csrf_token %}
+      <label for="cliente"><strong>Nome do Cliente:</strong></label>
+      <input type="text" id="cliente" name="cliente" required style="width:100%;padding:12px;margin-bottom:16px;border:2px solid var(--cinza);border-radius:8px;">
+      
+      <label for="telefone"><strong>Telefone:</strong></label>
+      <input type="tel" id="telefone" name="telefone" required style="width:100%;padding:12px;margin-bottom:16px;border:2px solid var(--cinza);border-radius:8px;">
+      
+      <label for="endereco"><strong>Endereço (opcional):</strong></label>
+      <textarea id="endereco" name="endereco" rows="2" style="width:100%;padding:12px;margin-bottom:16px;border:2px solid var(--cinza);border-radius:8px;"></textarea>
+      
+      <label for="observacao"><strong>Observação (opcional):</strong></label>
+      <textarea id="observacao" name="observacao" rows="2" style="width:100%;padding:12px;margin-bottom:16px;border:2px solid var(--cinza);border-radius:8px;"></textarea>
+      
+      <h4>Itens do Pedido:</h4>
+      <div id="itens-container">
+        <div class="item-pedido" style="margin-bottom:16px;padding:12px;background-color:var(--cinza);border-radius:8px;">
+          <select name="pizza_id[]" required style="width:100%;padding:12px;margin-bottom:8px;border:2px solid var(--branco);border-radius:8px;">
+            <option value="">Selecione a pizza</option>
+            {% for pizza in pizzas %}
+            <option value="{{ pizza.id }}">{{ pizza.nome }} - R$ {{ pizza.preco }}</option>
+            {% endfor %}
+          </select>
+          <input type="number" name="quantidade[]" min="1" value="1" required style="width:100%;padding:12px;border:2px solid var(--branco);border-radius:8px;" placeholder="Quantidade">
+        </div>
+      </div>
+      
+      <button type="button" onclick="adicionarItem()" class="btn btn-secondary">+ Adicionar Item</button>
+      <button type="submit" class="btn">Registrar Pedido</button>
+    </form>
+  </div>
+
+  <script>
+    function adicionarItem() {
+      const container = document.getElementById('itens-container');
+      const novoItem = container.children[0].cloneNode(true);
+      novoItem.querySelectorAll('input').forEach(input => input.value = '1');
+      novoItem.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+      container.appendChild(novoItem);
+    }
+  </script>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'pizzaria/base.html' %}
+{% block title %}Login - Área Restrita{% endblock %}
+{% block header %}Acesso Restrito{% endblock %}
+{% block header_sub %}<p>Área exclusiva do gerenciamento</p>{% endblock %}
+{% block content %}
+  <div class="card">
+    <h3>Login do Dono</h3>
+    {% if error %}
+      <p style="color: #d32f2f; background-color: #ffebee; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+        {{ error }}
+      </p>
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <input type="text" name="username" placeholder="Usuário" required>
+      <input type="password" name="password" placeholder="Senha" required>
+      <button type="submit" class="btn">Entrar no Painel</button>
+    </form>
+  </div>
+  <a href="{% url 'index' %}" class="btn btn-secondary">← Voltar ao Site</a>
+{% endblock %}

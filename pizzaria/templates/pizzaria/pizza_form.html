@@ -1,0 +1,32 @@
+{% extends 'pizzaria/base.html' %}
+{% block title %}{% if pizza %}Editar{% else %}Nova{% endif %} Pizza{% endblock %}
+{% block header %}{% if pizza %}Editar Pizza{% else %}Nova Pizza{% endif %}{% endblock %}
+{% block header_sub %}{% endblock %}
+{% block content %}
+  <a href="{% url 'painel_pizzas' %}" class="btn btn-secondary">← Voltar</a>
+  
+  <div class="card">
+    <form method="post">
+      {% csrf_token %}
+      <label for="nome"><strong>Nome da Pizza:</strong></label>
+      <input type="text" id="nome" name="nome" value="{% if pizza %}{{ pizza.nome }}{% endif %}" required style="width:100%;padding:12px;margin-bottom:16px;border:2px solid var(--cinza);border-radius:8px;">
+      
+      <label for="ingredientes"><strong>Ingredientes:</strong></label>
+      <input type="text" id="ingredientes" name="ingredientes" value="{% if pizza %}{{ pizza.ingredientes }}{% endif %}" required style="width:100%;padding:12px;margin-bottom:16px;border:2px solid var(--cinza);border-radius:8px;">
+      
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <input type="checkbox" name="especial" {% if pizza.especial %}checked{% endif %}>
+        <strong>Pizza Especial (Atum, Carne de Sol ou 4 Queijos)</strong>
+      </label>
+      
+      {% if pizza %}
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <input type="checkbox" name="disponivel" {% if pizza.disponivel %}checked{% endif %}>
+        <strong>Pizza disponível para venda</strong>
+      </label>
+      {% endif %}
+      
+      <button type="submit" class="btn">{% if pizza %}Salvar Alterações{% else %}Adicionar Pizza{% endif %}</button>
+    </form>
+  </div>
+{% endblock %}

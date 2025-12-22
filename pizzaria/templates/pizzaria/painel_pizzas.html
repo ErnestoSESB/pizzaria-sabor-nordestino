@@ -1,0 +1,27 @@
+{% extends 'pizzaria/base.html' %}
+{% block title %}Gerenciar Pizzas{% endblock %}
+{% block header %}Gerenciar Pizzas{% endblock %}
+{% block header_sub %}<p>Adicione, edite ou remova pizzas do cardápio</p>{% endblock %}
+{% block content %}
+  <div class="nav-links">
+    <a href="{% url 'painel' %}" class="btn btn-secondary">← Voltar ao Painel</a>
+    <a href="{% url 'pizza_adicionar' %}" class="btn">+ Nova Pizza</a>
+  </div>
+
+  {% for pizza in pizzas %}
+  <div class="card">
+    <h3>{{ pizza.nome }} {% if not pizza.disponivel %}<span style="color: #e65100;">(Indisponível)</span>{% endif %}</h3>
+    <p>{{ pizza.ingredientes }}</p>
+    <p class="price">R$ {{ pizza.preco }}</p>
+    <div class="nav-links">
+      <a href="{% url 'pizza_editar' pizza.id %}" class="btn btn-secondary">Editar</a>
+      <a href="{% url 'pizza_excluir' pizza.id %}" class="btn btn-secondary" onclick="return confirm('Tem certeza que deseja excluir esta pizza?')">Excluir</a>
+    </div>
+  </div>
+  {% empty %}
+  <div class="card">
+    <h3>Nenhuma pizza cadastrada</h3>
+    <p>Adicione pizzas para começar</p>
+  </div>
+  {% endfor %}
+{% endblock %}

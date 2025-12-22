@@ -1,0 +1,40 @@
+{% extends 'pizzaria/base.html' %}
+{% block title %}Pizzaria Sabor Nordestino{% endblock %}
+{% block content %}
+  <div class="hero">
+    <h2>Pizzas Artesanais Irresistíveis</h2>
+    <p>Feitas com amor, ingredientes frescos e muita tradição</p>
+    <a href="{% url 'cardapio' %}" class="btn" style="max-width: 300px; margin: 0 auto;">Ver Cardápio Completo</a>
+  </div>
+
+  <div class="features">
+    <div class="feature-card">
+      <div class="feature-icon">●</div>
+      <h4>Forno à Lenha</h4>
+      <p>Pizzas assadas no forno tradicional para sabor autêntico</p>
+    </div>
+    
+    <div class="feature-card">
+      <div class="feature-icon">●</div>
+      <h4>Ingredientes Frescos</h4>
+      <p>Selecionamos os melhores produtos diariamente</p>
+    </div>
+    
+    <div class="feature-card">
+      <div class="feature-icon">●</div>
+      <h4>Entrega Rápida</h4>
+      <p>Sua pizza quentinha em até 40 minutos</p>
+    </div>
+  </div>
+
+  <div class="cta-section">
+    <div class="card">
+      <h3>Faça seu Pedido Agora</h3>
+      <p>Atendemos via WhatsApp de terça a domingo, das 18:30h às 22:00h</p>
+      <div class="nav-links">
+        <a href="{% url 'cardapio' %}" class="btn">Ver Cardápio</a>
+        <a href="{% url 'contato' %}" class="btn btn-secondary">Fale Conosco</a>
+      </div>
+    </div>
+  </div>
+{% endblock %}

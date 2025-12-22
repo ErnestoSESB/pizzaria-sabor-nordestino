@@ -1,0 +1,32 @@
+{% extends 'pizzaria/base.html' %}
+{% block title %}Cardápio - Pizzaria{% endblock %}
+{% block header %}Nosso Cardápio{% endblock %}
+{% block header_sub %}<p>Escolha sua pizza favorita e peça já!</p>{% endblock %}
+{% block content %}
+  <div class="container">
+    <a href="{% url 'carrinho_detalhes' %}" class="btn">Ver Meu Pedido</a>
+    <a href="{% url 'escolher_sabores' %}" class="btn" style="background: var(--vermelho-escuro);">Faça seu Pedido</a>
+  </div>
+
+  <div class="card" style="background: var(--cinza-claro); text-align: center;">
+    <h3>Tabela de Preços</h3>
+    <p><strong>Pequena (P):</strong> R$ 25,00</p>
+    <p><strong>Média (M):</strong> R$ 32,00</p>
+    <p><strong>Grande (G):</strong> R$ 39,00</p>
+    <p style="font-size: 14px; color: var(--cinza-escuro); margin-top: 10px;">
+      * Pizzas de Atum, Carne de Sol ou 4 Queijos têm adicional<br>
+      * Adicionais disponíveis: Borda de chocolate, Catupiry original
+    </p>
+  </div>
+  
+  {% for pizza in pizzas %}
+  <div class="card">
+    <h3>{{ pizza.nome }}{% if pizza.especial %} ⭐{% endif %}</h3>
+    <p>{{ pizza.ingredientes }}</p>
+  </div>
+  {% empty %}
+  <div class="card">
+    <p>Nenhuma pizza disponível no momento. Volte em breve!</p>
+  </div>
+  {% endfor %}
+{% endblock %}

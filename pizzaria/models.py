@@ -1,0 +1,72 @@
+from django.db import models
+
+
+class TaxaEntrega(models.Model):
+	"""Armazena as taxas de entrega para diferentes localidades"""
+	nome = models.CharField(max_length=100, unique=True, help_text='Nome da localidade')
+	taxa = models.DecimalField(max_digits=6, decimal_places=2, default=0, help_text='Valor da taxa de entrega')
+	ativo = models.BooleanField(default=True, help_text='Se a entrega está disponível para este local')
+	
+	def __str__(self):
+		return f"{self.nome} - R$ {self.taxa:.2f}"
+	
+	class Meta:
+		verbose_name = 'Taxa de Entrega'
+		verbose_name_plural = 'Taxas de Entrega'
+		ordering = ['nome']
+
+
+class Pizza(models.Model):
+	nome = models.CharField(max_length=100)
+	ingredientes = models.CharField(max_length=255)
+	disponivel = models.BooleanField(default=True)
+	criado_em = models.DateTimeField(auto_now_add=True)
+	especial = models.BooleanField(default=False, help_text='Atum, Carne de Sol ou 4 Queijos')
+
+	def __str__(self):
+		return self.nome
+
+	def get_preco(self, tamanho):
+		"""Retorna o preço base conforme o tamanho"""
+		precos_base = {'P': 25.00, 'M': 32.00, 'G': 39.00}
+		return precos_base.get(tamanho, 0)
+
+class Pedido(models.Model):
+	STATUS_CHOICES = [
+		("Novo", "Novo"),
+		("Em preparo", "Em preparo"),
+		("Pronto", "Pronto"),
+		("Entregue", "Entregue"),
+	]
+	cliente = models.CharField(max_length=100)
+	telefone = models.CharField(max_length=20, default='')
+	endereco = models.TextField(blank=True, null=True)
+	observacao = models.TextField(blank=True, null=True)
+	local_entrega = models.ForeignKey(TaxaEntrega, on_delete=models.SET_NULL, null=True, blank=True, help_text='Local de entrega (se aplicável)')
+	taxa_entrega = models.DecimalField(max_digits=6, decimal_places=2, default=0, help_text='Valor da taxa de entrega')
+	subtotal = models.DecimalField(max_digits=8, decimal_places=2, default=0, help_text='Total sem taxa de entrega')
+	total = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+	status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Novo")
+	criado_em = models.DateTimeField(auto_now_add=True)
+	atualizado_em = models.DateTimeField(auto_now=True)
+
+	def __str__(self):
+		return f"Pedido #{self.id} - {self.cliente}"
+
+class ItemPedido(models.Model):
+	pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name='itens')
+	pizza = models.ForeignKey(Pizza, on_delete=models.CASCADE)
+	quantidade = models.PositiveIntegerField(default=1)
+	preco_unitario = models.DecimalField(max_digits=6, decimal_places=2)
+	sabores = models.TextField(blank=True, null=True, help_text='JSON com sabores múltiplos')
+	tamanho = models.CharField(max_length=1, choices=[('P', 'Pequena'), ('M', 'Média'), ('G', 'Grande')], default='G')
+	borda_chocolate = models.BooleanField(default=False)
+	catupiry_cima = models.CharField(max_length=10, choices=[('nao', 'Não'), ('inteira', 'Inteira'), ('metade', 'Metade')], default='nao')
+	catupiry_borda = models.BooleanField(default=False)
+	
+	def __str__(self):
+		return f"{self.quantidade}x {self.pizza.nome}"
+	
+	@property
+	def subtotal(self):
+		return self.quantidade * self.preco_unitario
