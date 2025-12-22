@@ -53,6 +53,7 @@ def popular_pizzas():
             {'nome': 'Calabresa', 'ingredientes': 'Calabresa, cebola, mussarela e azeitonas', 'especial': False},
             {'nome': 'Frango', 'ingredientes': 'Frango desfiado, mussarela, milho e azeitonas', 'especial': False},
             {'nome': 'Portuguesa', 'ingredientes': 'Presunto, mussarela, ovo, cebola, tomate e azeitonas', 'especial': False},
+            {'nome': 'Nordestina', 'ingredientes': 'Carne seca temperada, mussarela, cebola e azeitonas', 'especial': True},
             {'nome': '4 Queijos', 'ingredientes': 'Mussarela, catupiry, parmesão, provolone', 'especial': True},
             {'nome': 'Atum 1', 'ingredientes': 'Atum, cebola, tomate e azeitonas', 'especial': True},
             {'nome': 'Carne de Sol', 'ingredientes': 'Carne de sol, cebola, tomate, queijo coalho', 'especial': True},
