@@ -10,7 +10,14 @@ from urllib.parse import quote
 import json
 
 def index(request):
-	return render(request, 'pizzaria/index.html')
+	try:
+		return render(request, 'pizzaria/index.html')
+	except Exception as e:
+		import logging
+		logger = logging.getLogger(__name__)
+		logger.error(f"Erro em index: {str(e)}")
+		from django.http import HttpResponse
+		return HttpResponse(f'Erro ao carregar página: {str(e)}', status=500)
 
 def cardapio(request):
     try:
@@ -25,7 +32,14 @@ def cardapio(request):
         return render(request, 'pizzaria/cardapio.html', {'pizzas': []})
 
 def contato(request):
-	return render(request, 'pizzaria/contato.html')
+	try:
+		return render(request, 'pizzaria/contato.html')
+	except Exception as e:
+		import logging
+		logger = logging.getLogger(__name__)
+		logger.error(f"Erro em contato: {str(e)}")
+		from django.http import HttpResponse
+		return HttpResponse('Erro ao carregar contato', status=500)
 
 # Escolher sabores
 def escolher_sabores(request):
