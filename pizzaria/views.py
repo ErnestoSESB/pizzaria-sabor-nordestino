@@ -29,18 +29,27 @@ def contato(request):
 
 # Escolher sabores
 def escolher_sabores(request):
-	pizzas = Pizza.objects.filter(disponivel=True)
-	pizzas_json = json.dumps([{
-		'id': p.id,
-		'nome': p.nome,
-		'ingredientes': p.ingredientes,
-		'especial': p.especial
-	} for p in pizzas])
-	pizzas_especiais_json = json.dumps([p.id for p in pizzas if p.especial])
-	return render(request, 'pizzaria/escolher_sabores.html', {
-		'pizzas_json': pizzas_json,
-		'pizzas_especiais_json': pizzas_especiais_json
-	})
+	try:
+		pizzas = Pizza.objects.filter(disponivel=True)
+		pizzas_json = json.dumps([{
+			'id': p.id,
+			'nome': p.nome,
+			'ingredientes': p.ingredientes,
+			'especial': p.especial
+		} for p in pizzas])
+		pizzas_especiais_json = json.dumps([p.id for p in pizzas if p.especial])
+		return render(request, 'pizzaria/escolher_sabores.html', {
+			'pizzas_json': pizzas_json,
+			'pizzas_especiais_json': pizzas_especiais_json
+		})
+	except Exception as e:
+		import logging
+		logger = logging.getLogger(__name__)
+		logger.error(f"Erro em escolher_sabores: {str(e)}")
+		return render(request, 'pizzaria/escolher_sabores.html', {
+			'pizzas_json': '[]',
+			'pizzas_especiais_json': '[]'
+		})
 
 # Carrinho views
 def carrinho_adicionar(request, pizza_id):
@@ -51,7 +60,8 @@ def carrinho_adicionar(request, pizza_id):
 
 def carrinho_adicionar_pizza(request):
 	if request.method == 'POST':
-		carrinho = Carrinho(request)
+		try:
+			carrinho = Carrinho(request)
 		
 		# Dados do formulário
 		tamanho = request.POST.get('tamanho')
@@ -109,6 +119,11 @@ def carrinho_adicionar_pizza(request):
 		)
 		
 		return redirect('carrinho_detalhes')
+	except Exception as e:
+		import logging
+		logger = logging.getLogger(__name__)
+		logger.error(f"Erro em carrinho_adicionar_pizza: {str(e)}")
+		return redirect('escolher_sabores')
 	return redirect('escolher_sabores')
 
 def carrinho_remover(request, item_id):
@@ -117,21 +132,22 @@ def carrinho_remover(request, item_id):
 	return redirect('carrinho_detalhes')
 
 def carrinho_detalhes(request):
-	carrinho = Carrinho(request)
-	from .models import TaxaEntrega
-	
-	# Ordem personalizada dos locais
-	ordem_locais = [
-		'Lucrécia',
-		'Lucrécia (Sítio)',
-		'Três Altos (Sítio)',
-		'Almino Afonso',
-		'Frutuoso Gomes'
-	]
-	
-	# Buscar taxas ativas e ordenar manualmente
-	taxas_dict = {taxa.nome: taxa for taxa in TaxaEntrega.objects.filter(ativo=True)}
-	taxas_entrega = [taxas_dict[nome] for nome in ordem_locais if nome in taxas_dict]
+	try:
+		carrinho = Carrinho(request)
+		from .models import TaxaEntrega
+		
+		# Ordem personalizada dos locais
+		ordem_locais = [
+			'Lucrécia',
+			'Lucrécia (Sítio)',
+			'Três Altos (Sítio)',
+			'Almino Afonso',
+			'Frutuoso Gomes'
+		]
+		
+		# Buscar taxas ativas e ordenar manualmente
+		taxas_dict = {taxa.nome: taxa for taxa in TaxaEntrega.objects.filter(ativo=True)}
+		taxas_entrega = [taxas_dict[nome] for nome in ordem_locais if nome in taxas_dict]
 	
 	# Processar sabores para o template
 	itens_processados = []
@@ -160,11 +176,21 @@ def carrinho_detalhes(request):
 		'itens': itens_processados,
 		'taxas_entrega': taxas_entrega
 	})
+	except Exception as e:
+		import logging
+		logger = logging.getLogger(__name__)
+		logger.error(f"Erro em carrinho_detalhes: {str(e)}")
+		return render(request, 'pizzaria/carrinho.html', {
+			'carrinho': Carrinho(request),
+			'itens': [],
+			'taxas_entrega': []
+		})
 
 def carrinho_finalizar(request):
-	carrinho = Carrinho(request)
-	if len(carrinho) == 0:
-		return redirect('cardapio')
+	try:
+		carrinho = Carrinho(request)
+		if len(carrinho) == 0:
+			return redirect('cardapio')
 	
 	# Obter dados do formulário
 	nome = request.POST.get('nome', '')
@@ -284,12 +310,18 @@ def carrinho_finalizar(request):
 	carrinho.limpar()
 	
 	return redirect(whatsapp_url)
+	except Exception as e:
+		import logging
+		logger = logging.getLogger(__name__)
+		logger.error(f"Erro em carrinho_finalizar: {str(e)}")
+		return redirect('carrinho_detalhes')
 
 @login_required(login_url='/login/')
 def painel(request):
-	from django.db.models import Sum, Count, Q
-	
-	hoje = timezone.now().date()
+	try:
+		from django.db.models import Sum, Count, Q
+		
+		hoje = timezone.now().date()
 	
 	# Contadores básicos
 	pizzas_total = Pizza.objects.count()
@@ -354,6 +386,11 @@ def painel(request):
 	}
 	
 	return render(request, 'pizzaria/painel.html', context)
+	except Exception as e:
+		import logging
+		logger = logging.getLogger(__name__)
+		logger.error(f"Erro em painel: {str(e)}")
+		return render(request, 'pizzaria/painel.html', {'erro': str(e)})
 
 # Gerenciar Pizzas
 @login_required(login_url='/login/')
