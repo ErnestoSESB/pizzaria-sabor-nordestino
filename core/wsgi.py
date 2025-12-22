@@ -22,6 +22,7 @@ if DATABASE_URL:  # Se estiver no Railway
     from django.core.management import call_command
     from django.db import connection
     from django.db.utils import OperationalError, ProgrammingError
+    from pizzaria.models import Pizza
     
     try:
         # Verificar se as tabelas existem
@@ -45,6 +46,16 @@ if DATABASE_URL:  # Se estiver no Railway
                 print("✅ Dados iniciais criados!")
             except Exception as e:
                 print(f"⚠️ Aviso ao criar dados: {e}")
+        else:
+            # Verificar se precisa resetar pizzas (se tiver apenas 6, são as antigas)
+            pizza_count = Pizza.objects.count()
+            if pizza_count <= 6:
+                print(f"🔄 Detectadas {pizza_count} pizzas antigas. Resetando para cardápio completo...")
+                try:
+                    call_command('reset_pizzas')
+                    print("✅ Cardápio atualizado com 27 pizzas!")
+                except Exception as e:
+                    print(f"⚠️ Erro ao resetar pizzas: {e}")
     except Exception as e:
         print(f"⚠️ Erro no auto-setup: {e}")
 
