@@ -5,16 +5,16 @@
   <meta charset="UTF-8">
   <title>{% block title %}Pizzaria{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="{% static ''style.css'' %}">
+  <link rel="stylesheet" href="{% static 'style.css' %}"
 </head>
 <body>
 <header>
-  {% if request.path != ''/'' %}
-  <button onclick="history.back()" class="btn-voltar"> Voltar</button>
+  {% if request.path != '/' %}
+  <button onclick="history.back()" class="btn-voltar">‚Üê Voltar</button>
   {% endif %}
-  <img src="{% static ''images/logo.png'' %}" alt="Logo Pizzaria Sabor Nordestino" class="logo">
+  <img src="{% static 'images/logo.png' %}" alt="Logo Pizzaria Sabor Nordestino" class="logo">
   <h1>{% block header %}Pizzaria Sabor Nordestino{% endblock %}</h1>
-  {% block header_sub %}<p>As melhores pizzas artesanais de LucrÈcia-RN</p>{% endblock %}
+  {% block header_sub %}<p>As melhores pizzas artesanais de Lucr√©cia-RN</p>{% endblock %}
 </header>
 <div class="container">
   {% block content %}{% endblock %}
@@ -23,10 +23,10 @@
   <div class="footer-container">
     <div class="footer-section">
       <h3>Pizzaria Sabor Nordestino</h3>
-      <p>As melhores pizzas artesanais de LucrÈcia-RN</p>
-      <p><strong>EndereÁo:</strong> Av. Ivan Cavalcante - 21, LucrÈcia - RN</p>
+      <p>As melhores pizzas artesanais de Lucr√©cia-RN</p>
+      <p><strong>Endere√ßo:</strong> Av. Ivan Cavalcante - 21, Lucr√©cia - RN</p>
       <p><strong>Telefone:</strong> (84) 99034-6414</p>
-      <a href="{% url ''login'' %}" class="admin-link">Admin</a>
+      <a href="{% url 'login' %}" class="admin-link">Admin</a>
     </div>
     
     <div class="footer-section">
@@ -47,7 +47,7 @@
   </div>
   
   <div class="footer-bottom">
-    <p>&copy; 2025 Pizzaria Sabor Nordestino - Todos os direitos reservados</p>
+    <p>&copy; 2026 Pizzaria Sabor Nordestino - Todos os direitos reservados</p>
     <div class="footer-tech">
       <a href="https://www.djangoproject.com/" target="_blank" rel="noopener noreferrer">
         <img src="https://static.djangoproject.com/img/badges/djangomade124x25.gif" alt="Made with Django" style="vertical-align: middle;">
