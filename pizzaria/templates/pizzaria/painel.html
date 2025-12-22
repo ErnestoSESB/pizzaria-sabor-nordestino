@@ -112,29 +112,4 @@
     </div>
   </div>
 
-  <!-- Seção: Top 5 Pizzas -->
-  {% if top_pizzas %}
-  <h3 style="margin-top: 2rem; color: var(--vermelho);">Top 5 Pizzas Mais Vendidas</h3>
-  <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem;">
-    <table style="width: 100%; border-collapse: collapse;">
-      <thead>
-        <tr style="border-bottom: 2px solid #e0e0e0;">
-          <th style="text-align: left; padding: 0.75rem; color: #666;">#</th>
-          <th style="text-align: left; padding: 0.75rem; color: #666;">Pizza</th>
-          <th style="text-align: center; padding: 0.75rem; color: #666;">Quantidade Vendida</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for pizza in top_pizzas %}
-        <tr style="border-bottom: 1px solid #f0f0f0;">
-          <td style="padding: 0.75rem; font-weight: bold; color: var(--vermelho);">{{ forloop.counter }}</td>
-          <td style="padding: 0.75rem;">{{ pizza.pizza__nome }}</td>
-          <td style="padding: 0.75rem; text-align: center; font-weight: bold; color: #2e7d32;">{{ pizza.total }}x</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% endif %}
-
 {% endblock %}
