@@ -86,11 +86,12 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Configuração automática: SQLite local, PostgreSQL em produção
-if config('DATABASE_URL', default=None):
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
     # Produção (Railway)
     DATABASES = {
         'default': dj_database_url.config(
-            default=config('DATABASE_URL'),
+            default=DATABASE_URL,
             conn_max_age=600,
             conn_health_checks=True,
         )
