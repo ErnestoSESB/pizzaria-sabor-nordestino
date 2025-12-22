@@ -13,8 +13,16 @@ def index(request):
 	return render(request, 'pizzaria/index.html')
 
 def cardapio(request):
-    pizzas = Pizza.objects.filter(disponivel=True)
-    return render(request, 'pizzaria/cardapio.html', {'pizzas': pizzas})
+    try:
+        pizzas = Pizza.objects.filter(disponivel=True)
+        return render(request, 'pizzaria/cardapio.html', {'pizzas': pizzas})
+    except Exception as e:
+        # Log do erro para debug
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Erro no cardápio: {str(e)}")
+        # Retorna template mesmo se não houver pizzas
+        return render(request, 'pizzaria/cardapio.html', {'pizzas': []})
 
 def contato(request):
 	return render(request, 'pizzaria/contato.html')
