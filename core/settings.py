@@ -146,14 +146,8 @@ STATICFILES_DIRS = [
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # WhiteNoise para servir arquivos estáticos em produção
-# STORAGES = {
-#     "default": {
-#         "BACKEND": "django.core.files.storage.FileSystemStorage",
-#     },
-#     "staticfiles": {
-#         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
-#     },
-# }
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = True
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
