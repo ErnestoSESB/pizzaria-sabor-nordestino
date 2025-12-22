@@ -85,4 +85,14 @@ class Command(BaseCommand):
         else:
             self.stdout.write(f'ℹ️ Já existem {Pizza.objects.count()} pizzas cadastradas')
         
+        # Garantir que Nordestina seja especial (atualiza se já existe)
+        try:
+            nordestina = Pizza.objects.get(nome='Nordestina')
+            if not nordestina.especial:
+                nordestina.especial = True
+                nordestina.save()
+                self.stdout.write(self.style.SUCCESS('✅ Pizza Nordestina atualizada como ESPECIAL'))
+        except Pizza.DoesNotExist:
+            pass
+        
         self.stdout.write(self.style.SUCCESS('\n✨ Configuração concluída!'))
