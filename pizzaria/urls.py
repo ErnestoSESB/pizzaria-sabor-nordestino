@@ -24,4 +24,7 @@ urlpatterns = [
     path('painel/pedidos/adicionar/', views.pedido_adicionar, name='pedido_adicionar'),
     path('painel/pedidos/status/<int:pedido_id>/', views.pedido_alterar_status, name='pedido_alterar_status'),
     path('painel/pedidos/imprimir/<int:pedido_id>/', views.pedido_imprimir, name='pedido_imprimir'),
+    
+    # Debug
+    path('debug/recriar-pizzas/', views.debug_recriar_pizzas, name='debug_recriar_pizzas'),
 ]
