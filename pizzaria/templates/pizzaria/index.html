@@ -1,40 +1,81 @@
 {% extends 'pizzaria/base.html' %}
 {% block title %}Pizzaria Sabor Nordestino{% endblock %}
 {% block content %}
-  <div class="hero">
-    <h2>Pizzas Artesanais Irresistíveis</h2>
-    <p>Feitas com amor, ingredientes frescos e muita tradição</p>
-    <a href="{% url 'cardapio' %}" class="btn" style="max-width: 300px; margin: 0 auto;">Ver Cardápio Completo</a>
-  </div>
+  <section class="landing-hero">
+    <div class="landing-hero__overlay"></div>
+    <div class="landing-hero__content">
+      <span class="landing-kicker">11 anos de tradição</span>
+      <h2>Pizzaria Sabor Nordestino</h2>
+      <p>Ingredientes frescos, massa artesanal e um sabor marcante para quem quer pedir com confiança.</p>
 
-  <div class="features">
-    <div class="feature-card">
-      <div class="feature-icon">●</div>
-      <h4>Forno à Lenha</h4>
-      <p>Pizzas assadas no forno tradicional para sabor autêntico</p>
-    </div>
-    
-    <div class="feature-card">
-      <div class="feature-icon">●</div>
-      <h4>Ingredientes Frescos</h4>
-      <p>Selecionamos os melhores produtos diariamente</p>
-    </div>
-    
-    <div class="feature-card">
-      <div class="feature-icon">●</div>
-      <h4>Entrega Rápida</h4>
-      <p>Sua pizza quentinha em até 40 minutos</p>
-    </div>
-  </div>
+      <div class="hero-actions">
+        <a href="{% url 'escolher_sabores' %}" class="btn">Peça já a sua</a>
+        <a href="{% url 'cardapio' %}" class="btn btn-secondary">Ver cardápio</a>
+      </div>
 
-  <div class="cta-section">
-    <div class="card">
-      <h3>Faça seu Pedido Agora</h3>
-      <p>Atendemos via WhatsApp de terça a domingo, das 18:30h às 22:00h</p>
-      <div class="nav-links">
-        <a href="{% url 'cardapio' %}" class="btn">Ver Cardápio</a>
-        <a href="{% url 'contato' %}" class="btn btn-secondary">Fale Conosco</a>
+      <div class="hero-meta">
+        <div class="hero-meta__item">
+          <strong>Terça a Domingo</strong>
+          <span>18:30h às 22:00h</span>
+        </div>
+        <div class="hero-meta__item">
+          <strong>Entrega e retirada</strong>
+          <span>Atendimento rápido</span>
+        </div>
+        <div class="hero-meta__item">
+          <strong>Pedidos pelo WhatsApp</strong>
+          <span>Fluxo simples e direto</span>
+        </div>
       </div>
     </div>
-  </div>
+
+    <div class="landing-hero__card">
+      <span class="landing-hero__tag">Destaque da casa</span>
+      <h3>Sabores artesanais com cara de pizzaria de verdade</h3>
+      <p>Cardápio organizado, pedido fácil e visual pensado para converter visita em pedido.</p>
+      <ul>
+        <li>Cardápio tradicional e pizzas especiais</li>
+        <li>Pedido personalizado com múltiplos sabores</li>
+        <li>Painel para controle interno do dono</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section-block">
+    <div class="section-heading">
+      <span>Por que pedir aqui</span>
+      <h3>Uma experiência mais próxima da referência visual</h3>
+    </div>
+
+    <div class="features">
+      <div class="feature-card feature-card--dark">
+        <div class="feature-icon">01</div>
+        <h4>Visual forte</h4>
+        <p>Hero grande, destaque de marca e navegação mais clara.</p>
+      </div>
+
+      <div class="feature-card feature-card--dark">
+        <div class="feature-icon">02</div>
+        <h4>Pedido direto</h4>
+        <p>Botões objetivos para cardápio, escolha de sabores e contato.</p>
+      </div>
+
+      <div class="feature-card feature-card--dark">
+        <div class="feature-icon">03</div>
+        <h4>Operação simples</h4>
+        <p>O dono controla o painel sem afetar a experiência pública.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-section">
+    <div class="card cta-card">
+      <h3>Pronto para pedir?</h3>
+      <p>Escolha seus sabores, finalize o pedido e envie direto pelo WhatsApp.</p>
+      <div class="nav-links">
+        <a href="{% url 'escolher_sabores' %}" class="btn">Montar pedido</a>
+        <a href="{% url 'contato' %}" class="btn btn-secondary">Ver contato</a>
+      </div>
+    </div>
+  </section>
 {% endblock %}

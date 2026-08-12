@@ -6,67 +6,110 @@
 
 <form method="POST" action="{% url 'carrinho_adicionar_pizza' %}" id="form-pizza">
   {% csrf_token %}
-  
-  <!-- Tamanho -->
-  <div class="card">
-    <h3>1. Escolha o Tamanho</h3>
-    <select name="tamanho" id="tamanho" required onchange="calcularPreco()" style="width: 100%; padding: 12px; border: 2px solid var(--cinza-claro); border-radius: 8px; font-size: 16px;">
-      <option value="">Selecione...</option>
-      <option value="P">Pequena - R$ 25,00</option>
-      <option value="M">Média - R$ 32,00</option>
-      <option value="G">Grande - R$ 39,00</option>
-    </select>
-  </div>
+  <section class="builder-hero card">
+    <span class="builder-kicker">Pedido personalizado</span>
+    <h2>Monte sua pizza em poucos passos</h2>
+    <p>Escolha o tamanho, a combinação de sabores e os adicionais com uma experiência mais elegante e clara.</p>
+  </section>
 
-  <!-- Sabores -->
-  <div class="card">
-    <h3>2. Quantos sabores?</h3>
-    <div style="display: flex; gap: 15px; margin: 20px 0; flex-wrap: wrap;">
-      <button type="button" onclick="mostrarSabores(1)" class="btn">1 Sabor</button>
-      <button type="button" onclick="mostrarSabores(2)" class="btn">2 Sabores (Meia-Meia)</button>
-      <button type="button" onclick="mostrarSabores(3)" class="btn">3 Sabores</button>
-    </div>
-  </div>
-  
-  <input type="hidden" name="num_sabores" id="num_sabores">
-  <div id="sabores-container"></div>
-  
-  <!-- Adicionais -->
-  <div class="card" id="adicionais-card" style="display: none;">
-    <h3>3. Adicionais (Opcional)</h3>
-    
-    <div style="margin: 15px 0;">
-      <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-        <input type="checkbox" name="borda_chocolate" id="borda_chocolate" onchange="controlarBordas(); calcularPreco()" style="width: 20px; height: 20px;">
-        <span><strong>Borda de Chocolate</strong> (P: +R$ 4 | M: +R$ 5 | G: +R$ 6)</span>
-      </label>
-    </div>
-
-    <div style="margin: 15px 0;">
-      <label style="display: block; margin-bottom: 5px; font-weight: bold;">Catupiry Original por Cima:</label>
-      <select name="catupiry_cima" id="catupiry_cima" onchange="calcularPreco()" style="width: 100%; padding: 12px; border: 2px solid var(--cinza-claro); border-radius: 8px; font-size: 16px;">
-        <option value="nao">Não</option>
-        <option value="metade">Metade (P: +R$ 5 | M: +R$ 6 | G: +R$ 7)</option>
-        <option value="inteira">Inteira (P: +R$ 10 | M: +R$ 12 | G: +R$ 14)</option>
+  <section class="builder-grid">
+    <div class="builder-panel">
+      <div class="builder-panel__header">
+        <span class="builder-step">1</span>
+        <div>
+          <h3>Escolha o tamanho</h3>
+          <p>Preço base já configurado para cada formato.</p>
+        </div>
+      </div>
+      <select name="tamanho" id="tamanho" required onchange="calcularPreco()">
+        <option value="">Selecione...</option>
+        <option value="P">Pequena - R$ 25,00</option>
+        <option value="M">Média - R$ 32,00</option>
+        <option value="G">Grande - R$ 39,00</option>
       </select>
     </div>
 
-    <div style="margin: 15px 0;">
-      <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-        <input type="checkbox" name="catupiry_borda" id="catupiry_borda" onchange="controlarBordas(); calcularPreco()" style="width: 20px; height: 20px;">
-        <span><strong>Catupiry Original na Borda</strong> (P: +R$ 8 | M: +R$ 10 | G: +R$ 12)</span>
+    <div class="builder-panel">
+      <div class="builder-panel__header">
+        <span class="builder-step">2</span>
+        <div>
+          <h3>Quantos sabores?</h3>
+          <p id="sabores-status">Selecione a quantidade para liberar a montagem.</p>
+        </div>
+      </div>
+      <div class="choice-grid">
+        <button type="button" onclick="mostrarSabores(1)" class="choice-card" data-num="1">
+          <span class="choice-card__title">1 sabor</span>
+          <span class="choice-card__sub">Tradicional e direto</span>
+        </button>
+        <button type="button" onclick="mostrarSabores(2)" class="choice-card" data-num="2">
+          <span class="choice-card__title">2 sabores</span>
+          <span class="choice-card__sub">Meia a meia</span>
+        </button>
+        <button type="button" onclick="mostrarSabores(3)" class="choice-card" data-num="3">
+          <span class="choice-card__title">3 sabores</span>
+          <span class="choice-card__sub">Mais variedade</span>
+        </button>
+      </div>
+    </div>
+  </section>
+  
+  <input type="hidden" name="num_sabores" id="num_sabores">
+  <div id="sabores-container" class="builder-stack"></div>
+  
+  <section class="builder-panel builder-panel--accent" id="adicionais-card" style="display: none;">
+    <div class="builder-panel__header">
+      <span class="builder-step">3</span>
+      <div>
+        <h3>Adicionais e finalização</h3>
+        <p>Extras selecionados de forma rápida, sem poluição visual.</p>
+      </div>
+    </div>
+
+    <div class="addons-grid">
+      <label class="addon-option">
+        <input type="checkbox" name="borda_chocolate" id="borda_chocolate" onchange="controlarBordas(); calcularPreco()">
+        <span class="addon-option__box">
+          <strong>Borda de Chocolate</strong>
+          <small>P: +R$ 4 | M: +R$ 5 | G: +R$ 6</small>
+        </span>
+      </label>
+
+      <label class="addon-option addon-option--select">
+        <span class="addon-option__label">Catupiry Original por Cima</span>
+        <select name="catupiry_cima" id="catupiry_cima" onchange="calcularPreco()">
+          <option value="nao">Não</option>
+          <option value="metade">Metade (P: +R$ 5 | M: +R$ 6 | G: +R$ 7)</option>
+          <option value="inteira">Inteira (P: +R$ 10 | M: +R$ 12 | G: +R$ 14)</option>
+        </select>
+      </label>
+
+      <label class="addon-option">
+        <input type="checkbox" name="catupiry_borda" id="catupiry_borda" onchange="controlarBordas(); calcularPreco()">
+        <span class="addon-option__box">
+          <strong>Catupiry Original na Borda</strong>
+          <small>P: +R$ 8 | M: +R$ 10 | G: +R$ 12</small>
+        </span>
       </label>
     </div>
-  </div>
+  </section>
   
-  <!-- Resumo -->
-  <!-- Resumo -->
-  <div class="card" id="resumo-card" style="display: none;">
-    <h3>Resumo do Pedido</h3>
-    <p id="resumo-texto"></p>
-    <p class="price" id="preco-final"></p>
-    <button type="submit" class="btn" style="width: 100%;">Adicionar ao Pedido</button>
-  </div>
+  <section class="builder-panel builder-summary" id="resumo-card" style="display: none;">
+    <div class="builder-panel__header">
+      <span class="builder-step">4</span>
+      <div>
+        <h3>Resumo do pedido</h3>
+        <p>Conferência final antes de adicionar ao carrinho.</p>
+      </div>
+    </div>
+
+    <div class="summary-box">
+      <p id="resumo-texto"></p>
+      <div class="summary-box__price" id="preco-final"></div>
+    </div>
+
+    <button type="submit" class="btn builder-submit">Adicionar ao pedido</button>
+  </section>
 </form>
 
 <script>
@@ -76,20 +119,31 @@ const pizzasEspeciais = {{ pizzas_especiais_json|safe }};
 function mostrarSabores(num) {
   document.getElementById('num_sabores').value = num;
   document.getElementById('adicionais-card').style.display = 'block';
+  document.getElementById('sabores-status').textContent = `${num} sabor${num > 1 ? 'es' : ''} selecionado${num > 1 ? 's' : ''}. Agora escolha os sabores.`;
+
+  document.querySelectorAll('.choice-card').forEach(card => {
+    card.classList.toggle('active', card.dataset.num == num);
+  });
   
   const container = document.getElementById('sabores-container');
   container.innerHTML = '';
   
   for (let i = 1; i <= num; i++) {
     const card = document.createElement('div');
-    card.className = 'card';
+    card.className = 'builder-panel flavor-panel';
     card.innerHTML = `
-      <h3>Sabor ${i}</h3>
-      <select name="sabor_${i}" id="sabor_${i}" required onchange="calcularPreco()" style="width: 100%; padding: 12px; border: 2px solid var(--cinza-claro); border-radius: 8px; font-size: 16px; margin-bottom: 10px;">
+      <div class="builder-panel__header">
+        <span class="builder-step builder-step--soft">${i}</span>
+        <div>
+          <h3>Sabor ${i}</h3>
+          <p>Selecione um sabor da lista.</p>
+        </div>
+      </div>
+      <select name="sabor_${i}" id="sabor_${i}" required onchange="calcularPreco()">
         <option value="">Selecione...</option>
         ${pizzas.map(p => `<option value="${p.id}" data-especial="${p.especial}">${p.nome}</option>`).join('')}
       </select>
-      <div id="ingredientes_${i}" style="color: var(--cinza-escuro); font-size: 14px; margin-top: -5px;"></div>
+      <div id="ingredientes_${i}" class="flavor-panel__ingredients"></div>
     `;
     container.appendChild(card);
     

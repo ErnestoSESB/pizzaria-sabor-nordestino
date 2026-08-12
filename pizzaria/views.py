@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.views.decorators.http import require_POST
 from django.utils import timezone
 from datetime import datetime, timedelta
 from .models import Pizza, Pedido, ItemPedido
@@ -103,6 +105,7 @@ def carrinho_adicionar_pizza(request):
 		return redirect('carrinho_detalhes')
 	return redirect('escolher_sabores')
 
+@require_POST
 def carrinho_remover(request, item_id):
 	carrinho = Carrinho(request)
 	carrinho.remover(item_id)
@@ -153,18 +156,32 @@ def carrinho_detalhes(request):
 		'taxas_entrega': taxas_entrega
 	})
 
+@require_POST
 def carrinho_finalizar(request):
 	carrinho = Carrinho(request)
 	if len(carrinho) == 0:
 		return redirect('cardapio')
 	
 	# Obter dados do formulário
-	nome = request.POST.get('nome', '')
-	endereco = request.POST.get('endereco', '')
-	observacoes = request.POST.get('observacoes', '')
-	pagamento = request.POST.get('pagamento', '')
-	troco = request.POST.get('troco', '')
+	nome = request.POST.get('nome', '').strip()
+	endereco = request.POST.get('endereco', '').strip()
+	observacoes = request.POST.get('observacoes', '').strip()
+	pagamento = request.POST.get('pagamento', '').strip()
+	troco = request.POST.get('troco', '').strip()
 	local_entrega_id = request.POST.get('local_entrega', '')
+
+	if len(nome) < 3:
+		messages.error(request, 'Informe um nome válido para finalizar o pedido.')
+		return redirect('carrinho_detalhes')
+
+	pagamentos_validos = {'Dinheiro', 'PIX', 'Cartão na entrega'}
+	if pagamento not in pagamentos_validos:
+		messages.error(request, 'Selecione uma forma de pagamento válida.')
+		return redirect('carrinho_detalhes')
+
+	if not local_entrega_id:
+		messages.error(request, 'Selecione o local de entrega.')
+		return redirect('carrinho_detalhes')
 	
 	# Calcular taxa de entrega
 	from .models import TaxaEntrega
@@ -172,13 +189,17 @@ def carrinho_finalizar(request):
 	local_entrega = None
 	nome_local = 'Retirada no local'
 	
-	if local_entrega_id and local_entrega_id != 'local':
+	if local_entrega_id != 'local':
+		if not endereco:
+			messages.error(request, 'Informe o endereço de entrega.')
+			return redirect('carrinho_detalhes')
 		try:
 			local_entrega = TaxaEntrega.objects.get(id=local_entrega_id, ativo=True)
 			taxa_entrega = local_entrega.taxa
 			nome_local = local_entrega.nome
 		except TaxaEntrega.DoesNotExist:
-			pass
+			messages.error(request, 'Local de entrega inválido. Selecione novamente.')
+			return redirect('carrinho_detalhes')
 	
 	subtotal = carrinho.get_total()
 	total_final = subtotal + taxa_entrega
@@ -376,6 +397,7 @@ def pizza_editar(request, pizza_id):
 	return render(request, 'pizzaria/pizza_form.html', {'pizza': pizza})
 
 @login_required(login_url='/login/')
+@require_POST
 def pizza_excluir(request, pizza_id):
 	pizza = get_object_or_404(Pizza, id=pizza_id)
 	pizza.delete()
@@ -459,18 +481,23 @@ def pedido_adicionar(request):
 		# Adicionar itens ao pedido
 		pizzas_ids = request.POST.getlist('pizza_id[]')
 		quantidades = request.POST.getlist('quantidade[]')
+		tamanhos = request.POST.getlist('tamanho[]')
 		
 		total = 0
-		for pizza_id, quantidade in zip(pizzas_ids, quantidades):
+		for pizza_id, quantidade, tamanho in zip(pizzas_ids, quantidades, tamanhos):
 			if pizza_id and quantidade:
 				pizza = Pizza.objects.get(id=pizza_id)
+				if tamanho not in {'P', 'M', 'G'}:
+					tamanho = 'G'
+				preco_unitario = pizza.get_preco(tamanho)
 				ItemPedido.objects.create(
 					pedido=pedido,
 					pizza=pizza,
 					quantidade=int(quantidade),
-					preco_unitario=pizza.preco
+					preco_unitario=preco_unitario,
+					tamanho=tamanho
 				)
-				total += pizza.preco * int(quantidade)
+				total += preco_unitario * int(quantidade)
 		
 		pedido.total = total
 		pedido.save()
@@ -480,11 +507,16 @@ def pedido_adicionar(request):
 	return render(request, 'pizzaria/pedido_form.html', {'pizzas': pizzas})
 
 @login_required(login_url='/login/')
+@require_POST
 def pedido_alterar_status(request, pedido_id):
 	pedido = get_object_or_404(Pedido, id=pedido_id)
-	if request.method == 'POST':
-		pedido.status = request.POST.get('status')
+	novo_status = request.POST.get('status')
+	status_validos = {valor for valor, _ in Pedido.STATUS_CHOICES}
+	if novo_status in status_validos:
+		pedido.status = novo_status
 		pedido.save()
+	else:
+		messages.error(request, 'Status inválido para o pedido.')
 	return redirect('painel_pedidos')
 
 @login_required(login_url='/login/')
@@ -522,6 +554,7 @@ def login_view(request):
 			return render(request, 'pizzaria/login.html', {'error': 'Usuário ou senha inválidos.'})
 	return render(request, 'pizzaria/login.html')
 
+@require_POST
 def logout_view(request):
 	logout(request)
 	return redirect('login')

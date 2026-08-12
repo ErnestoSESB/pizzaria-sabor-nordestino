@@ -6,7 +6,10 @@
   <div class="nav-links">
     <a href="{% url 'painel_pizzas' %}" class="btn">Gerenciar Pizzas</a>
     <a href="{% url 'painel_pedidos' %}" class="btn">Gerenciar Pedidos</a>
-    <a href="{% url 'logout' %}" class="btn btn-secondary">Sair</a>
+    <form method="post" action="{% url 'logout' %}" style="display:inline;">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-secondary">Sair</button>
+    </form>
   </div>
 
   <!-- Seção: Faturamento -->

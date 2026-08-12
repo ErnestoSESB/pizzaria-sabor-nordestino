@@ -26,8 +26,13 @@
           <select name="pizza_id[]" required style="width:100%;padding:12px;margin-bottom:8px;border:2px solid var(--branco);border-radius:8px;">
             <option value="">Selecione a pizza</option>
             {% for pizza in pizzas %}
-            <option value="{{ pizza.id }}">{{ pizza.nome }} - R$ {{ pizza.preco }}</option>
+            <option value="{{ pizza.id }}">{{ pizza.nome }}</option>
             {% endfor %}
+          </select>
+          <select name="tamanho[]" required style="width:100%;padding:12px;margin-bottom:8px;border:2px solid var(--branco);border-radius:8px;">
+            <option value="G">Grande - R$ 39,00</option>
+            <option value="M">Média - R$ 32,00</option>
+            <option value="P">Pequena - R$ 25,00</option>
           </select>
           <input type="number" name="quantidade[]" min="1" value="1" required style="width:100%;padding:12px;border:2px solid var(--branco);border-radius:8px;" placeholder="Quantidade">
         </div>

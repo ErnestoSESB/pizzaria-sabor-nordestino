@@ -5,18 +5,55 @@
   <meta charset="UTF-8">
   <title>{% block title %}Pizzaria{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="{% static 'style.css' %}"
+  <link rel="stylesheet" href="{% static 'style.css' %}">
 </head>
 <body>
 <header>
-  {% if request.path != '/' %}
-  <button onclick="history.back()" class="btn-voltar">← Voltar</button>
-  {% endif %}
-  <img src="{% static 'images/logo.png' %}" alt="Logo Pizzaria Sabor Nordestino" class="logo">
-  <h1>{% block header %}Pizzaria Sabor Nordestino{% endblock %}</h1>
-  {% block header_sub %}<p>As melhores pizzas artesanais de Lucrécia-RN</p>{% endblock %}
+  <div class="header-shell">
+    {% if request.path != '/' %}
+    <div class="header-utility">
+      <button onclick="history.back()" class="btn-voltar">← Voltar</button>
+    </div>
+    {% endif %}
+
+    <div class="header-topbar">
+      <a href="{% url 'index' %}" class="brand-mark">
+        <img src="{% static 'images/logo.png' %}" alt="Logo Pizzaria Sabor Nordestino" class="logo">
+        <div class="brand-copy">
+          <span class="brand-name">Pizzaria Sabor Nordestino</span>
+          <span class="brand-city">Lucrécia - RN</span>
+        </div>
+      </a>
+
+      <div class="header-badge">
+        <span class="header-badge__label">Atendimento</span>
+        <span class="header-badge__value">Terça a Domingo • 18:30h às 22:00h</span>
+      </div>
+    </div>
+
+    <nav class="site-nav" aria-label="Navegação principal">
+      <a href="{% url 'index' %}" class="site-nav__link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">Home</a>
+      <a href="{% url 'cardapio' %}" class="site-nav__link {% if request.resolver_match.url_name == 'cardapio' %}active{% endif %}">Cardápio</a>
+      <a href="{% url 'carrinho_detalhes' %}" class="site-nav__link {% if request.resolver_match.url_name == 'carrinho_detalhes' %}active{% endif %}">Pedido</a>
+      <a href="{% url 'contato' %}" class="site-nav__link {% if request.resolver_match.url_name == 'contato' %}active{% endif %}">Contato</a>
+      <a href="{% url 'painel' %}" class="site-nav__link {% if request.resolver_match.url_name == 'painel' %}active{% endif %}">Controle</a>
+    </nav>
+
+    <div class="header-spotlight">
+      <span class="header-spotlight__eyebrow">Tradição e sabor</span>
+      <h1>{% block header %}Pizzaria Sabor Nordestino{% endblock %}</h1>
+      {% block header_sub %}<p>As melhores pizzas artesanais de Lucrécia-RN</p>{% endblock %}
+    </div>
+  </div>
 </header>
 <div class="container">
+  {% if messages %}
+    {% for message in messages %}
+      <div class="card" style="border-left: 4px solid #d32f2f; background: #ffebee;">
+        <p style="margin: 0; color: #b71c1c; font-weight: 600;">{{ message }}</p>
+      </div>
+    {% endfor %}
+  {% endif %}
   {% block content %}{% endblock %}
 </div>
 <footer class="footer-profissional">
@@ -26,7 +63,6 @@
       <p>As melhores pizzas artesanais de Lucrécia-RN</p>
       <p><strong>Endereço:</strong> Av. Ivan Cavalcante - 21, Lucrécia - RN</p>
       <p><strong>Telefone:</strong> (84) 99034-6414</p>
-      <a href="{% url 'login' %}" class="admin-link">Admin</a>
     </div>
     
     <div class="footer-section">

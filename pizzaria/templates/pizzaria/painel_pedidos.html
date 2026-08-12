@@ -3,89 +3,154 @@
 {% block header %}Gerenciar Pedidos{% endblock %}
 {% block header_sub %}<p>Visualize e gerencie todos os pedidos</p>{% endblock %}
 {% block content %}
-  <div class="nav-links">
-    <a href="{% url 'painel' %}" class="btn btn-secondary">← Voltar ao Painel</a>
-    <a href="{% url 'pedido_adicionar' %}" class="btn">+ Registrar Pedido</a>
-  </div>
-
-  <div style="background: var(--cinza-claro); padding: 16px; border-radius: 12px; margin-bottom: 20px;">
-    <p style="margin: 0 0 12px 0; font-weight: bold; font-size: 16px;">📅 Filtrar Pedidos:</p>
-    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
-      <a href="?filtro=hoje" class="btn {% if filtro_atual == 'hoje' %}btn-secondary{% endif %}" style="flex: 1; min-width: 120px; text-align: center;">Hoje</a>
-      <a href="?filtro=ontem" class="btn {% if filtro_atual == 'ontem' %}btn-secondary{% endif %}" style="flex: 1; min-width: 120px; text-align: center;">Ontem</a>
-      <a href="?filtro=7dias" class="btn {% if filtro_atual == '7dias' %}btn-secondary{% endif %}" style="flex: 1; min-width: 120px; text-align: center;">Últimos 7 dias</a>
-      <a href="?filtro=todos" class="btn {% if filtro_atual == 'todos' %}btn-secondary{% endif %}" style="flex: 1; min-width: 120px; text-align: center;">Todos</a>
-    </div>
-    <form method="get" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-      <label style="font-weight: 500;">Filtrar por data:</label>
-      <input type="date" name="data" value="{{ data_filtro }}" style="padding: 10px; border: 2px solid var(--cinza); border-radius: 8px; flex: 1; min-width: 150px;">
-      <button type="submit" class="btn" style="white-space: nowrap;">Buscar</button>
-      {% if data_filtro %}<a href="?" class="btn btn-secondary" style="white-space: nowrap;">Limpar</a>{% endif %}
-    </form>
-  </div>
-
-  {% for pedido in pedidos %}
-  <div class="card">
-    <h3>Pedido #{{ pedido.id|stringformat:"03d" }}</h3>
-    <p><strong>Cliente:</strong> {{ pedido.cliente }}</p>
-    <p><strong>Telefone:</strong> {{ pedido.telefone }}</p>
-    {% if pedido.endereco %}<p><strong>Endereço:</strong> {{ pedido.endereco }}</p>{% endif %}
-    {% if pedido.local_entrega %}
-      <p><strong>Local de Entrega:</strong> {{ pedido.local_entrega.nome }}</p>
-    {% else %}
-      <p><strong>Local de Entrega:</strong> Retirada no local</p>
-    {% endif %}
-    
-    <h4 style="margin-top:12px;">Itens:</h4>
-    {% for item_data in pedido.itens_processados %}
-      <div style="background: var(--cinza-claro); padding: 12px; border-radius: 8px; margin: 8px 0;">
-        <p style="margin: 0;"><strong>{{ item_data.item.quantidade }}x Pizza</strong></p>
-        {% if item_data.sabores_lista %}
-        <p style="margin: 5px 0 0 0; font-size: 14px;"><strong>Sabores:</strong> {{ item_data.sabores_lista }}</p>
-        {% else %}
-        <p style="margin: 5px 0 0 0; font-size: 14px;"><strong>Sabor:</strong> {{ item_data.item.pizza.nome }}</p>
-        {% endif %}
-        <p style="margin: 5px 0 0 0; font-size: 14px;">
-          Tamanho: {% if item_data.item.tamanho == 'P' %}Pequena{% elif item_data.item.tamanho == 'M' %}Média{% else %}Grande{% endif %}
-        </p>
-        {% if item_data.item.borda_chocolate or item_data.item.catupiry_cima != 'nao' or item_data.item.catupiry_borda %}
-        <p style="margin: 5px 0 0 0; font-size: 14px;"><strong>Adicionais:</strong></p>
-        <ul style="margin: 5px 0 0 20px; font-size: 14px;">
-          {% if item_data.item.borda_chocolate %}<li>Borda de Chocolate</li>{% endif %}
-          {% if item_data.item.catupiry_cima == 'inteira' %}<li>Catupiry por Cima (Inteira)</li>{% endif %}
-          {% if item_data.item.catupiry_cima == 'metade' %}<li>Catupiry por Cima (Metade)</li>{% endif %}
-          {% if item_data.item.catupiry_borda %}<li>Catupiry na Borda</li>{% endif %}
-        </ul>
-        {% endif %}
-        <p style="margin: 5px 0 0 0; font-size: 14px;">Subtotal: R$ {{ item_data.item.subtotal }}</p>
+  <div class="dashboard-shell">
+    <div class="dashboard-toolbar">
+      <div class="dashboard-toolbar__title">
+        <h3 style="margin: 0;">Centro de Pedidos</h3>
+        <span>Operação diária, acompanhamento e atualização de status.</span>
       </div>
-    {% endfor %}
-    
-    <div style="background: #f5f5f5; padding: 12px; border-radius: 8px; margin: 12px 0;">
-      <p style="margin: 5px 0;"><strong>Subtotal:</strong> R$ {{ pedido.subtotal }}</p>
-      <p style="margin: 5px 0; color: #d32f2f;"><strong>Taxa de Entrega:</strong> R$ {{ pedido.taxa_entrega }}</p>
-      <p class="price" style="margin: 5px 0; font-size: 1.3rem;">Total: R$ {{ pedido.total }}</p>
-    </div>
-    <p class="status {{ pedido.status|lower|cut:' ' }}">Status: {{ pedido.status }}</p>
-    
-    <form method="post" action="{% url 'pedido_alterar_status' pedido.id %}" style="margin-top:12px;">
-      {% csrf_token %}
-      <select name="status" style="width:100%;padding:12px;margin-bottom:12px;border:2px solid var(--cinza);border-radius:8px;">
-        <option value="Novo" {% if pedido.status == "Novo" %}selected{% endif %}>Novo</option>
-        <option value="Em preparo" {% if pedido.status == "Em preparo" %}selected{% endif %}>Em preparo</option>
-        <option value="Pronto" {% if pedido.status == "Pronto" %}selected{% endif %}>Pronto</option>
-        <option value="Entregue" {% if pedido.status == "Entregue" %}selected{% endif %}>Entregue</option>
-      </select>
-      <div class="nav-links">
-        <button type="submit" class="btn btn-secondary">Atualizar Status</button>
-        <a href="{% url 'pedido_imprimir' pedido.id %}" class="btn" target="_blank">Imprimir</a>
+      <div class="dashboard-actions">
+        <a href="{% url 'painel' %}" class="btn btn-secondary">Voltar ao controle</a>
+        <a href="{% url 'pedido_adicionar' %}" class="btn">Registrar pedido</a>
       </div>
-    </form>
+    </div>
+
+    <div class="panel-summary">
+      <div class="panel-summary__card">
+        <span class="panel-summary__label">Pedidos exibidos</span>
+        <div class="panel-summary__value">{{ pedidos|length }}</div>
+      </div>
+      <div class="panel-summary__card">
+        <span class="panel-summary__label">Pedidos novos</span>
+        <div class="panel-summary__value panel-summary__value--accent">{{ pedidos_novos }}</div>
+      </div>
+      <div class="panel-summary__card">
+        <span class="panel-summary__label">Filtro atual</span>
+        <div class="panel-summary__value">{{ filtro_atual|title }}</div>
+      </div>
+      <div class="panel-summary__card">
+        <span class="panel-summary__label">Última busca</span>
+        <div class="panel-summary__value">{% if data_filtro %}{{ data_filtro }}{% else %}Hoje{% endif %}</div>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <div class="filter-toolbar">
+        <a href="?filtro=hoje" class="filter-chip {% if filtro_atual == 'hoje' %}active{% endif %}">Hoje</a>
+        <a href="?filtro=ontem" class="filter-chip {% if filtro_atual == 'ontem' %}active{% endif %}">Ontem</a>
+        <a href="?filtro=7dias" class="filter-chip {% if filtro_atual == '7dias' %}active{% endif %}">Últimos 7 dias</a>
+        <a href="?filtro=todos" class="filter-chip {% if filtro_atual == 'todos' %}active{% endif %}">Todos</a>
+      </div>
+      <form method="get" class="dashboard-actions" style="align-items: flex-end;">
+        <div style="flex: 1; min-width: 220px;">
+          <label style="display:block; margin-bottom: 8px; font-weight: 700; color: var(--texto);">Filtrar por data</label>
+          <input type="date" name="data" value="{{ data_filtro }}">
+        </div>
+        <button type="submit" class="btn" style="min-width: 150px;">Buscar</button>
+        {% if data_filtro %}<a href="?" class="btn btn-secondary" style="min-width: 150px;">Limpar</a>{% endif %}
+      </form>
+    </div>
+
+    <div class="orders-list">
+      {% for pedido in pedidos %}
+      <article class="order-card">
+        <div class="order-card__header">
+          <div class="order-card__title">
+            <h3>Pedido #{{ pedido.id|stringformat:"03d" }}</h3>
+            <span>Criado em {{ pedido.criado_em|date:"d/m/Y H:i" }}</span>
+          </div>
+          <div class="order-card__status {% if pedido.status == 'Novo' %}status novo{% elif pedido.status == 'Em preparo' %}status empreparo{% elif pedido.status == 'Pronto' %}status finalizado{% else %}status finalizado{% endif %}">{{ pedido.status }}</div>
+        </div>
+
+        <div class="order-card__content">
+          <div class="order-info">
+            <div class="order-info__grid">
+              <div class="info-pill">
+                <span>Cliente</span>
+                <strong>{{ pedido.cliente }}</strong>
+              </div>
+              <div class="info-pill">
+                <span>Telefone</span>
+                <strong>{{ pedido.telefone|default:'Não informado' }}</strong>
+              </div>
+              <div class="info-pill">
+                <span>Entrega</span>
+                <strong>{% if pedido.local_entrega %}{{ pedido.local_entrega.nome }}{% else %}Retirada no local{% endif %}</strong>
+              </div>
+              <div class="info-pill">
+                <span>Endereço</span>
+                <strong>{% if pedido.endereco %}{{ pedido.endereco }}{% else %}Sem endereço{% endif %}</strong>
+              </div>
+            </div>
+
+            <div class="order-items">
+              <div class="order-items__title">Itens do pedido</div>
+              {% for item_data in pedido.itens_processados %}
+                <div class="order-item">
+                  <div class="order-item__top">
+                    <div>
+                      <div class="order-item__name">{{ item_data.item.quantidade }}x {% if item_data.sabores_lista %}Pizza especial{% else %}{{ item_data.item.pizza.nome }}{% endif %}</div>
+                      <div class="order-item__meta">
+                        Tamanho: {% if item_data.item.tamanho == 'P' %}Pequena{% elif item_data.item.tamanho == 'M' %}Média{% else %}Grande{% endif %}
+                      </div>
+                    </div>
+                    <div class="order-item__meta">R$ {{ item_data.item.subtotal }}</div>
+                  </div>
+
+                  {% if item_data.sabores_lista %}
+                    <div class="order-item__meta"><strong>Sabores:</strong> {{ item_data.sabores_lista }}</div>
+                  {% else %}
+                    <div class="order-item__meta"><strong>Sabor:</strong> {{ item_data.item.pizza.nome }}</div>
+                  {% endif %}
+
+                  {% if item_data.item.borda_chocolate or item_data.item.catupiry_cima != 'nao' or item_data.item.catupiry_borda %}
+                    <div class="order-item__meta" style="margin-top: 8px;">
+                      <strong>Adicionais:</strong>
+                      {% if item_data.item.borda_chocolate %} Borda de Chocolate{% endif %}
+                      {% if item_data.item.catupiry_cima == 'inteira' %} Catupiry por Cima (Inteira){% endif %}
+                      {% if item_data.item.catupiry_cima == 'metade' %} Catupiry por Cima (Metade){% endif %}
+                      {% if item_data.item.catupiry_borda %} Catupiry na Borda{% endif %}
+                    </div>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <aside class="order-summary">
+            <div class="order-summary__title">Resumo financeiro</div>
+            <div class="order-summary__box">
+              <div class="order-summary__line"><span>Subtotal</span><strong>R$ {{ pedido.subtotal }}</strong></div>
+              <div class="order-summary__line"><span>Taxa de entrega</span><strong>R$ {{ pedido.taxa_entrega }}</strong></div>
+              <div class="order-summary__line" style="border-top: 1px solid rgba(117,117,117,0.12); margin-top: 6px; padding-top: 12px;">
+                <span>Total</span><strong>R$ {{ pedido.total }}</strong>
+              </div>
+            </div>
+
+            <form method="post" action="{% url 'pedido_alterar_status' pedido.id %}" class="order-form-inline">
+              {% csrf_token %}
+              <label style="display:block; margin-bottom: 8px; font-weight: 700; color: var(--texto);">Atualizar status</label>
+              <select name="status">
+                <option value="Novo" {% if pedido.status == "Novo" %}selected{% endif %}>Novo</option>
+                <option value="Em preparo" {% if pedido.status == "Em preparo" %}selected{% endif %}>Em preparo</option>
+                <option value="Pronto" {% if pedido.status == "Pronto" %}selected{% endif %}>Pronto</option>
+                <option value="Entregue" {% if pedido.status == "Entregue" %}selected{% endif %}>Entregue</option>
+              </select>
+
+              <div class="order-actions">
+                <button type="submit" class="btn btn-secondary">Salvar status</button>
+                <a href="{% url 'pedido_imprimir' pedido.id %}" class="btn" target="_blank">Imprimir</a>
+              </div>
+            </form>
+          </aside>
+        </div>
+      </article>
+      {% empty %}
+      <div class="card">
+        <h3>Nenhum pedido registrado</h3>
+        <p>Registre os pedidos recebidos pelo WhatsApp aqui</p>
+      </div>
+      {% endfor %}
+    </div>
   </div>
-  {% empty %}
-  <div class="card">
-    <h3>Nenhum pedido registrado</h3>
-    <p>Registre os pedidos recebidos pelo WhatsApp aqui</p>
-  </div>
-  {% endfor %}
 {% endblock %}

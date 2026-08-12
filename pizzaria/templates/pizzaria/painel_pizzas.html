@@ -12,10 +12,13 @@
   <div class="card">
     <h3>{{ pizza.nome }} {% if not pizza.disponivel %}<span style="color: #e65100;">(Indisponível)</span>{% endif %}</h3>
     <p>{{ pizza.ingredientes }}</p>
-    <p class="price">R$ {{ pizza.preco }}</p>
+    <p class="price">P: R$ 25,00 | M: R$ 32,00 | G: R$ 39,00</p>
     <div class="nav-links">
       <a href="{% url 'pizza_editar' pizza.id %}" class="btn btn-secondary">Editar</a>
-      <a href="{% url 'pizza_excluir' pizza.id %}" class="btn btn-secondary" onclick="return confirm('Tem certeza que deseja excluir esta pizza?')">Excluir</a>
+      <form method="post" action="{% url 'pizza_excluir' pizza.id %}" onsubmit="return confirm('Tem certeza que deseja excluir esta pizza?')" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-secondary">Excluir</button>
+      </form>
     </div>
   </div>
   {% empty %}

@@ -1,1 +1,0 @@
-# Comandos Django personalizados

@@ -42,7 +42,10 @@
       <p><strong>Quantidade:</strong> {{ item.quantidade }}</p>
       <p><strong>Preço unitário:</strong> R$ {{ item.preco }}</p>
       <p class="price">Subtotal: R$ {{ item.total }}</p>
-      <a href="{% url 'carrinho_remover' item.item_id %}" class="btn btn-secondary">Remover</a>
+      <form method="post" action="{% url 'carrinho_remover' item.item_id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-secondary">Remover</button>
+      </form>
     </div>
     {% endfor %}
     
@@ -105,19 +108,6 @@
     </div>
 
     <script>
-      // Validação e formatação de telefone
-      document.getElementById('telefone').addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.length > 11) value = value.slice(0, 11);
-        if (value.length > 2) {
-          value = '(' + value.slice(0, 2) + ') ' + value.slice(2);
-        }
-        if (value.length > 10) {
-          value = value.slice(0, 10) + '-' + value.slice(10);
-        }
-        e.target.value = value;
-      });
-
       // Feedback visual no submit
       document.getElementById('form-pedido').addEventListener('submit', function(e) {
         const btn = document.getElementById('btn-finalizar');

@@ -1,1 +1,0 @@
-# Comando Django init_data

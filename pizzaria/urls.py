@@ -1,4 +1,6 @@
 from django.urls import path
+from django.conf import settings
+from django.views.generic import RedirectView
 from . import views
 
 urlpatterns = [
@@ -14,8 +16,9 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     
-    # Painel Admin
-    path('painel/', views.painel, name='painel'),
+    # Painel do dono
+    path('controle/', views.painel, name='painel'),
+    path('painel/', RedirectView.as_view(pattern_name='painel', permanent=False)),
     path('painel/pizzas/', views.painel_pizzas, name='painel_pizzas'),
     path('painel/pizzas/adicionar/', views.pizza_adicionar, name='pizza_adicionar'),
     path('painel/pizzas/editar/<int:pizza_id>/', views.pizza_editar, name='pizza_editar'),
@@ -25,6 +28,9 @@ urlpatterns = [
     path('painel/pedidos/status/<int:pedido_id>/', views.pedido_alterar_status, name='pedido_alterar_status'),
     path('painel/pedidos/imprimir/<int:pedido_id>/', views.pedido_imprimir, name='pedido_imprimir'),
     
-    # Debug
-    path('debug/recriar-pizzas/', views.debug_recriar_pizzas, name='debug_recriar_pizzas'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += [
+        path('debug/recriar-pizzas/', views.debug_recriar_pizzas, name='debug_recriar_pizzas'),
+    ]
