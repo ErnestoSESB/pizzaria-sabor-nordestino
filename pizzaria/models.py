@@ -19,6 +19,7 @@ class TaxaEntrega(models.Model):
 class Pizza(models.Model):
 	nome = models.CharField(max_length=100)
 	ingredientes = models.CharField(max_length=255)
+	imagem = models.ImageField(upload_to='pizzas/', blank=True, null=True)
 	disponivel = models.BooleanField(default=True)
 	criado_em = models.DateTimeField(auto_now_add=True)
 	especial = models.BooleanField(default=False, help_text='Atum, Carne de Sol ou 4 Queijos')

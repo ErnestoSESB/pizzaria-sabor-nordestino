@@ -1,32 +1,202 @@
-{% extends 'pizzaria/base.html' %}
-{% block title %}Cardápio - Pizzaria{% endblock %}
-{% block header %}Nosso Cardápio{% endblock %}
-{% block header_sub %}<p>Escolha sua pizza favorita e peça já!</p>{% endblock %}
-{% block content %}
-  <div class="container">
-    <a href="{% url 'carrinho_detalhes' %}" class="btn">Ver Meu Pedido</a>
-    <a href="{% url 'escolher_sabores' %}" class="btn" style="background: var(--vermelho-escuro);">Faça seu Pedido</a>
-  </div>
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cardapio - Sabor Nordestino</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'style.css' %}">
+  <link rel="stylesheet" href="{% static 'pizzaria/index.css' %}">
+  <link rel="stylesheet" href="{% static 'pizzaria/cardapio.css' %}">
+</head>
+<body>
+  <header class="navbar navbar-solid">
+    <div class="container nav-container">
+      <div class="logo">
+        <i class="fa-solid fa-fire text-primary"></i>
+        <span class="logo-text">Sabor <span class="text-primary">&amp;</span> Nordestino</span>
+      </div>
+      <nav class="nav-links">
+        <a href="{% url 'index' %}">Inicio</a>
+        <a href="{% url 'cardapio' %}" class="active">Cardapio</a>
+        <a href="{% url 'contato' %}">Contato</a>
+        <a href="{% url 'carrinho_detalhes' %}">Pedido</a>
+      </nav>
+      <div class="nav-actions">
+        <a href="{% url 'carrinho_detalhes' %}" class="cart-btn" aria-label="Ver pedido"><i class="fa-solid fa-bag-shopping"></i></a>
+      </div>
+    </div>
+  </header>
 
-  <div class="card" style="background: var(--cinza-claro); text-align: center;">
-    <h3>Tabela de Preços</h3>
-    <p><strong>Pequena (P):</strong> R$ 25,00</p>
-    <p><strong>Média (M):</strong> R$ 32,00</p>
-    <p><strong>Grande (G):</strong> R$ 39,00</p>
-    <p style="font-size: 14px; color: var(--cinza-escuro); margin-top: 10px;">
-      * Pizzas de Atum, Carne de Sol ou 4 Queijos têm adicional<br>
-      * Adicionais disponíveis: Borda de chocolate, Catupiry original
-    </p>
-  </div>
-  
-  {% for pizza in pizzas %}
-  <div class="card">
-    <h3>{{ pizza.nome }}{% if pizza.especial %} ⭐{% endif %}</h3>
-    <p>{{ pizza.ingredientes }}</p>
-  </div>
-  {% empty %}
-  <div class="card">
-    <p>Nenhuma pizza disponível no momento. Volte em breve!</p>
-  </div>
-  {% endfor %}
-{% endblock %}
+  <section class="menu-hero">
+    <div class="container">
+      <div class="badge"><i class="fa-solid fa-fire"></i> Feitas na hora, com ingredientes frescos</div>
+      <h1>Nosso Cardapio</h1>
+      <p>Escolha a sua favorita. Todas com massa de fermentacao natural e assadas no<br>forno a lenha.</p>
+    </div>
+  </section>
+
+  <section class="menu-section">
+    <div class="container">
+      <div class="menu-controls">
+        <div class="filter-buttons">
+          <button class="btn-filter active" type="button">Todas</button>
+          <button class="btn-filter" type="button">Pizzas doces</button>
+          <button class="btn-filter" type="button">Pizzas salgadas</button>
+        </div>
+      </div>
+      <!-- INFORMAÇÕES GERAIS DO CARDÁPIO (Preços e Bordas) -->
+      <div class="menu-info-banner">
+          
+          <!-- Tabela de Preços Base -->
+          <div class="info-block">
+              <h4><i class="fa-solid fa-tags text-primary"></i> Valores Base</h4>
+              <ul class="price-list">
+                  <li><span>Pequena (P)</span> <span class="price-val">R$ 25,00</span></li>
+                  <li><span>Média (M)</span> <span class="price-val">R$ 32,00</span></li>
+                  <li><span>Grande (G)</span> <span class="price-val">R$ 39,00</span></li>
+              </ul>
+              <p class="obs-text">* Pizzas de atum, carne de sol ou quatro queijos têm valor adicional.</p>
+          </div>
+
+          <!-- Opções de Bordas -->
+          <div class="info-block">
+              <h4><i class="fa-solid fa-pizza-slice text-primary"></i> Bordas Recheadas</h4>
+              <div class="border-options">
+                  <span class="border-badge">Catupiry Original</span>
+                  <span class="border-badge">Chocolate</span>
+              </div>
+              <p class="obs-text">Personalize sua pizza escolhendo uma de nossas bordas especiais na hora de adicionar ao carrinho.</p>
+          </div>
+          
+      </div>
+
+      <div class="menu-grid">
+        <div class="menu-card">
+          <div class="card-image">
+            <div class="card-tag">DOCE FINAL</div>
+            <div class="card-category">Pizzas doces</div>
+            <img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?ixlib=rb-4.0.3&amp;auto=format&amp;fit=crop&amp;w=600&amp;q=80" alt="Romeu e Julieta">
+          </div>
+          <div class="card-content">
+            <h3>Romeu e Julieta</h3>
+            <p>Goiabada cremosa, queijo coalho e um toque de canela.</p>
+            <div class="card-footer">
+              <span class="price">R$ 34,90</span>
+              <a href="{% url 'escolher_sabores' %}" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Adicionar</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-card">
+          <div class="card-image">
+            <div class="card-tag">A MAIS PEDIDA</div>
+            <div class="card-category">Pizzas salgadas</div>
+            <img src="https://images.unsplash.com/photo-1604382355076-af4b0eb60143?ixlib=rb-4.0.3&amp;auto=format&amp;fit=crop&amp;w=600&amp;q=80" alt="Nordestina">
+          </div>
+          <div class="card-content">
+            <h3>Nordestina</h3>
+            <p>Carne de sol, queijo coalho, cebola roxa e toque de coentro.</p>
+            <div class="card-footer">
+              <span class="price">R$ 39,90</span>
+              <a href="{% url 'escolher_sabores' %}" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Adicionar</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-card">
+          <div class="card-image">
+            <div class="card-tag">CASA</div>
+            <div class="card-category">Pizzas salgadas</div>
+            <img src="https://images.unsplash.com/photo-1574071318508-1cdbab80d002?ixlib=rb-4.0.3&amp;auto=format&amp;fit=crop&amp;w=600&amp;q=80" alt="Sertaneja">
+          </div>
+          <div class="card-content">
+            <h3>Sertaneja</h3>
+            <p>Charque desfiada, catupiry, milho assado e pimenta biquinho.</p>
+            <div class="card-footer">
+              <span class="price">R$ 42,90</span>
+              <a href="{% url 'escolher_sabores' %}" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Adicionar</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-card">
+          <div class="card-image">
+            <div class="card-category">Pizzas salgadas</div>
+            <img src="https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?ixlib=rb-4.0.3&amp;auto=format&amp;fit=crop&amp;w=600&amp;q=80" alt="Quatro Queijos">
+          </div>
+          <div class="card-content">
+            <h3>Quatro Queijos</h3>
+            <p>Mussarela, provolone, gorgonzola e parmesao gratinado.</p>
+            <div class="card-footer">
+              <span class="price">R$ 38,90</span>
+              <a href="{% url 'escolher_sabores' %}" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Adicionar</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-card">
+          <div class="card-image">
+            <div class="card-category">Pizzas salgadas</div>
+            <img src="https://images.unsplash.com/photo-1628840042765-356cda07504e?ixlib=rb-4.0.3&amp;auto=format&amp;fit=crop&amp;w=600&amp;q=80" alt="Calabresa Defumada">
+          </div>
+          <div class="card-content">
+            <h3>Calabresa Defumada</h3>
+            <p>Calabresa artesanal, cebola caramelizada e mussarela cremosa.</p>
+            <div class="card-footer">
+              <span class="price">R$ 35,90</span>
+              <a href="{% url 'escolher_sabores' %}" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Adicionar</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="main-footer" style="border-top: 1px solid var(--border-color);">
+      <div class="container footer-grid">
+        <div class="footer-brand">
+          <div class="logo"><i class="fa-solid fa-fire text-primary"></i><span class="logo-text">Sabor <span class="text-primary">&amp;</span> Nordestino</span></div>
+          <p>Pizzas com massa de fermentacao natural, assadas no forno a lenha. O sabor que acende a sua fome.</p>
+          <div class="social-links">
+            <a href="https://www.instagram.com/pizzariasabornordestinoo" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+            <a href="https://api.whatsapp.com/send/?phone=5584990346414" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+          </div>
+        </div>
+        <div class="footer-links">
+          <h4>Navegacao</h4>
+          <ul>
+            <li><a href="{% url 'index' %}">Inicio</a></li>
+            <li><a href="{% url 'cardapio' %}">Cardapio</a></li>
+            <li><a href="{% url 'contato' %}">Contato</a></li>
+            <li><a href="{% url 'painel' %}">Painel Admin</a></li>
+          </ul>
+        </div>
+        <div class="footer-contact">
+          <h4>Contato</h4>
+          <ul>
+            <li><i class="fa-solid fa-location-dot"></i> Av. Ivan Cavalcante - 21, Lucrecia RN</li>
+            <li><i class="fa-solid fa-phone"></i> (84) 99034-6414</li>
+            <li><i class="fa-regular fa-clock"></i> Ter a Dom · 18h as 23h45</li>
+          </ul>
+        </div>
+        <div class="footer-about">
+          <h4>Sobre nos</h4>
+          <p>Uma pizzaria artesanal feita com paixao. Ingredientes frescos, massa de fermentacao natural e o aroma inconfundivel do forno a lenha.</p>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-footer">
+      <div class="container">
+        <p>&copy; 2026 Sabor_Nordestino. Todos os direitos reservados.</p>
+        <p>Feito com fogo e paixao.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

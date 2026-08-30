@@ -380,7 +380,8 @@ def pizza_adicionar(request):
 		nome = request.POST.get('nome')
 		ingredientes = request.POST.get('ingredientes')
 		especial = request.POST.get('especial') == 'on'
-		Pizza.objects.create(nome=nome, ingredientes=ingredientes, especial=especial)
+		imagem = request.FILES.get('imagem')
+		Pizza.objects.create(nome=nome, ingredientes=ingredientes, especial=especial, imagem=imagem)
 		return redirect('painel_pizzas')
 	return render(request, 'pizzaria/pizza_form.html')
 
@@ -392,6 +393,8 @@ def pizza_editar(request, pizza_id):
 		pizza.ingredientes = request.POST.get('ingredientes')
 		pizza.especial = request.POST.get('especial') == 'on'
 		pizza.disponivel = request.POST.get('disponivel') == 'on'
+		if request.FILES.get('imagem'):
+			pizza.imagem = request.FILES['imagem']
 		pizza.save()
 		return redirect('painel_pizzas')
 	return render(request, 'pizzaria/pizza_form.html', {'pizza': pizza})

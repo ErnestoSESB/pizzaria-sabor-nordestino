@@ -6,13 +6,20 @@
   <a href="{% url 'painel_pizzas' %}" class="btn btn-secondary">← Voltar</a>
   
   <div class="card">
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
       <label for="nome"><strong>Nome da Pizza:</strong></label>
       <input type="text" id="nome" name="nome" value="{% if pizza %}{{ pizza.nome }}{% endif %}" required style="width:100%;padding:12px;margin-bottom:16px;border:2px solid var(--cinza);border-radius:8px;">
       
       <label for="ingredientes"><strong>Ingredientes:</strong></label>
       <input type="text" id="ingredientes" name="ingredientes" value="{% if pizza %}{{ pizza.ingredientes }}{% endif %}" required style="width:100%;padding:12px;margin-bottom:16px;border:2px solid var(--cinza);border-radius:8px;">
+
+      <label for="imagem"><strong>Imagem da Pizza:</strong></label>
+      <input type="file" id="imagem" name="imagem" accept="image/jpeg,image/png,image/webp" style="width:100%;padding:12px;margin-bottom:6px;border:2px solid var(--cinza);border-radius:8px;">
+      <small style="display:block;margin-bottom:16px;color:var(--cinza-escuro);">Recomendacao: use uma imagem de 600x400 px ou 800x600 px. Formatos aceitos: JPG, PNG ou WebP.</small>
+      {% if pizza.imagem %}
+      <p style="margin-bottom:16px;">Imagem atual: <a href="{{ pizza.imagem.url }}" target="_blank" rel="noopener">ver imagem</a></p>
+      {% endif %}
       
       <label style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
         <input type="checkbox" name="especial" {% if pizza.especial %}checked{% endif %}>

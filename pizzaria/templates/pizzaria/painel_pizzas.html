@@ -10,6 +10,9 @@
 
   {% for pizza in pizzas %}
   <div class="card">
+    {% if pizza.imagem %}
+    <img src="{{ pizza.imagem.url }}" alt="Imagem da pizza {{ pizza.nome }}" style="width:180px;height:120px;object-fit:cover;border-radius:8px;margin-bottom:12px;">
+    {% endif %}
     <h3>{{ pizza.nome }} {% if not pizza.disponivel %}<span style="color: #e65100;">(Indisponível)</span>{% endif %}</h3>
     <p>{{ pizza.ingredientes }}</p>
     <p class="price">P: R$ 25,00 | M: R$ 32,00 | G: R$ 39,00</p>

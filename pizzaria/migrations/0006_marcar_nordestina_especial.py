@@ -9,11 +9,11 @@ def marcar_nordestina_especial(apps, schema_editor):
         if not nordestina.especial:
             nordestina.especial = True
             nordestina.save()
-            print('✅ Pizza Nordestina marcada como especial!')
+            print('Pizza Nordestina marcada como especial!')
         else:
-            print('ℹ️ Pizza Nordestina já está especial')
+            print('Pizza Nordestina ja esta especial')
     except Pizza.DoesNotExist:
-        print('⚠️ Pizza Nordestina não encontrada')
+        print('Pizza Nordestina nao encontrada')
 
 def reverter(apps, schema_editor):
     """Reverte a alteração"""

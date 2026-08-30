@@ -96,10 +96,10 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
     import dj_database_url
     DATABASES = {'default': dj_database_url.parse(DATABASE_URL)}
-    print(f"✅ Usando PostgreSQL: {DATABASES['default']['NAME']}")
+    print(f"Usando PostgreSQL: {DATABASES['default']['NAME']}")
 else:
     # Desenvolvimento local com SQLite
-    print("⚠️ DATABASE_URL não encontrada, usando SQLite")
+    print("DATABASE_URL nao encontrada, usando SQLite")
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -147,6 +147,9 @@ STATICFILES_DIRS = [
     BASE_DIR / 'frontend',
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # WhiteNoise para servir arquivos estáticos em produção
 WHITENOISE_USE_FINDERS = True
