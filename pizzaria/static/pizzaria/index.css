@@ -99,6 +99,7 @@ ul {
 }
 
 .nav-container {
+    position: relative;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -116,6 +117,10 @@ ul {
 .nav-links {
     display: flex;
     gap: 30px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
 }
 
 .nav-links a {
@@ -141,6 +146,22 @@ ul {
 
 .cart-btn:hover {
     background: var(--border-color);
+}
+
+@media (max-width: 720px) {
+    .nav-container {
+        flex-wrap: wrap;
+        row-gap: 14px;
+    }
+
+    .nav-links {
+        position: static;
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        transform: none;
+        white-space: normal;
+    }
 }
 
 /* ==========================================================================

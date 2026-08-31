@@ -5,6 +5,7 @@
 {% block content %}
   <div class="nav-links">
     <a href="{% url 'painel_pizzas' %}" class="btn">Gerenciar Pizzas</a>
+    <a href="{% url 'painel_bebidas' %}" class="btn">Gerenciar Bebidas</a>
     <a href="{% url 'painel_pedidos' %}" class="btn">Gerenciar Pedidos</a>
     <form method="post" action="{% url 'logout' %}" style="display:inline;">
       {% csrf_token %}

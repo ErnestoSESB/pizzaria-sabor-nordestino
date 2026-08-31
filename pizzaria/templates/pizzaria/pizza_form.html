@@ -20,6 +20,12 @@
       {% if pizza.imagem %}
       <p style="margin-bottom:16px;">Imagem atual: <a href="{{ pizza.imagem.url }}" target="_blank" rel="noopener">ver imagem</a></p>
       {% endif %}
+
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <input type="checkbox" name="doce" {% if pizza.categoria == 'doce' %}checked{% endif %}>
+        <strong>Pizza doce</strong>
+        <small>(desmarcada = pizza salgada)</small>
+      </label>
       
       <label style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
         <input type="checkbox" name="especial" {% if pizza.especial %}checked{% endif %}>

@@ -1,5 +1,5 @@
 from decimal import Decimal
-from .models import Pizza
+from .models import Pizza, Bebida
 import json
 
 class Carrinho:
@@ -10,26 +10,50 @@ class Carrinho:
             carrinho = self.session['carrinho'] = {}
         self.carrinho = carrinho
     
-    def adicionar(self, pizza, quantidade=1, preco=None, tamanho='G', borda_chocolate=False, 
+    def adicionar(self, pizza=None, bebida=None, quantidade=1, preco=None, tamanho='G', borda_chocolate=False,
                   catupiry_cima='nao', catupiry_borda=False, sabores=None):
+        if bebida is not None:
+            bebida_id = str(bebida.id)
+            item_id = f"bebida_{bebida_id}"
+            if item_id not in self.carrinho:
+                self.carrinho[item_id] = {
+                    'tipo': 'bebida',
+                    'bebida_id': bebida_id,
+                    'pizza_id': None,
+                    'quantidade': quantidade,
+                    'preco': str(preco if preco is not None else bebida.preco),
+                    'tamanho': tamanho,
+                    'borda_chocolate': False,
+                    'catupiry_cima': 'nao',
+                    'catupiry_borda': False,
+                    'sabores': None,
+                    'nome': bebida.nome,
+                }
+            else:
+                self.carrinho[item_id]['quantidade'] += quantidade
+            self.salvar()
+            return
+
         pizza_id = str(pizza.id)
-        # Gera ID único se tiver sabores (para permitir múltiplas pizzas mistas diferentes)
         if sabores:
             import time
             item_id = f"{pizza_id}_{int(time.time() * 1000)}"
         else:
             item_id = pizza_id
-        
+
         if item_id not in self.carrinho:
             self.carrinho[item_id] = {
+                'tipo': 'pizza',
                 'pizza_id': pizza_id,
+                'bebida_id': None,
                 'quantidade': quantidade,
-                'preco': str(preco if preco else pizza.get_preco(tamanho)),
+                'preco': str(preco if preco is not None else pizza.get_preco(tamanho)),
                 'tamanho': tamanho,
                 'borda_chocolate': borda_chocolate,
                 'catupiry_cima': catupiry_cima,
                 'catupiry_borda': catupiry_borda,
-                'sabores': sabores
+                'sabores': sabores,
+                'nome': pizza.nome,
             }
         else:
             self.carrinho[item_id]['quantidade'] += quantidade
@@ -53,15 +77,19 @@ class Carrinho:
         self.salvar()
     
     def __iter__(self):
-        pizza_ids = [item['pizza_id'] for item in self.carrinho.values()]
+        pizza_ids = [item['pizza_id'] for item in self.carrinho.values() if item.get('pizza_id')]
+        bebida_ids = [item['bebida_id'] for item in self.carrinho.values() if item.get('bebida_id')]
         pizzas = Pizza.objects.filter(id__in=pizza_ids)
+        bebidas = Bebida.objects.filter(id__in=bebida_ids)
         pizzas_dict = {str(p.id): p for p in pizzas}
-        
+        bebidas_dict = {str(b.id): b for b in bebidas}
+
         for item_id, item_data in self.carrinho.items():
             item = item_data.copy()
             item['item_id'] = item_id
-            item['pizza'] = pizzas_dict.get(item['pizza_id'])
-            item['preco'] = Decimal(item['preco'])
+            item['pizza'] = pizzas_dict.get(item.get('pizza_id'))
+            item['bebida'] = bebidas_dict.get(item.get('bebida_id'))
+            item['preco'] = Decimal(item.get('preco', '0'))
             item['total'] = item['preco'] * item['quantidade']
             yield item
     
@@ -69,4 +97,4 @@ class Carrinho:
         return sum(item['quantidade'] for item in self.carrinho.values())
     
     def get_total(self):
-        return sum(Decimal(item['preco']) * item['quantidade'] for item in self.carrinho.values())
+        return sum(Decimal(item.get('preco', '0')) * item['quantidade'] for item in self.carrinho.values())

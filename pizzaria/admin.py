@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Pizza, Pedido, ItemPedido, TaxaEntrega
+from .models import Pizza, Pedido, ItemPedido, TaxaEntrega, Bebida
 
 @admin.register(TaxaEntrega)
 class TaxaEntregaAdmin(admin.ModelAdmin):
@@ -8,10 +8,17 @@ class TaxaEntregaAdmin(admin.ModelAdmin):
 	search_fields = ('nome',)
 	list_editable = ('taxa', 'ativo')
 
+@admin.register(Bebida)
+class BebidaAdmin(admin.ModelAdmin):
+	list_display = ('nome', 'preco', 'disponivel', 'criado_em')
+	list_filter = ('disponivel',)
+	search_fields = ('nome', 'descricao')
+	list_editable = ('preco', 'disponivel')
+
 @admin.register(Pizza)
 class PizzaAdmin(admin.ModelAdmin):
-	list_display = ('nome', 'especial', 'disponivel', 'criado_em')
-	list_filter = ('especial', 'disponivel')
+	list_display = ('nome', 'categoria', 'especial', 'disponivel', 'criado_em')
+	list_filter = ('categoria', 'especial', 'disponivel')
 	search_fields = ('nome', 'ingredientes')
 	list_editable = ('disponivel',)
 
@@ -24,7 +31,7 @@ class PedidoAdmin(admin.ModelAdmin):
 	
 @admin.register(ItemPedido)
 class ItemPedidoAdmin(admin.ModelAdmin):
-	list_display = ('pedido', 'pizza', 'tamanho', 'quantidade', 'preco_unitario', 'subtotal')
-	list_filter = ('tamanho',)
-	search_fields = ('pedido__cliente', 'pizza__nome')
+	list_display = ('pedido', 'item_tipo', 'pizza', 'bebida', 'tamanho', 'quantidade', 'preco_unitario', 'subtotal')
+	list_filter = ('item_tipo', 'tamanho')
+	search_fields = ('pedido__cliente', 'pizza__nome', 'bebida__nome')
 

@@ -17,9 +17,17 @@ class TaxaEntrega(models.Model):
 
 
 class Pizza(models.Model):
+	CATEGORIA_SALGADA = 'salgada'
+	CATEGORIA_DOCE = 'doce'
+	CATEGORIA_CHOICES = [
+		(CATEGORIA_SALGADA, 'Pizza salgada'),
+		(CATEGORIA_DOCE, 'Pizza doce'),
+	]
+
 	nome = models.CharField(max_length=100)
 	ingredientes = models.CharField(max_length=255)
 	imagem = models.ImageField(upload_to='pizzas/', blank=True, null=True)
+	categoria = models.CharField(max_length=10, choices=CATEGORIA_CHOICES, default=CATEGORIA_SALGADA)
 	disponivel = models.BooleanField(default=True)
 	criado_em = models.DateTimeField(auto_now_add=True)
 	especial = models.BooleanField(default=False, help_text='Atum, Carne de Sol ou 4 Queijos')
@@ -31,6 +39,24 @@ class Pizza(models.Model):
 		"""Retorna o preço base conforme o tamanho"""
 		precos_base = {'P': 25.00, 'M': 32.00, 'G': 39.00}
 		return precos_base.get(tamanho, 0)
+
+
+class Bebida(models.Model):
+	nome = models.CharField(max_length=100)
+	descricao = models.CharField(max_length=200, blank=True)
+	imagem = models.ImageField(upload_to='bebidas/', blank=True, null=True)
+	preco = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+	disponivel = models.BooleanField(default=True)
+	criado_em = models.DateTimeField(auto_now_add=True)
+
+	def __str__(self):
+		return self.nome
+
+	class Meta:
+		verbose_name = 'Bebida'
+		verbose_name_plural = 'Bebidas'
+		ordering = ['nome']
+
 
 class Pedido(models.Model):
 	STATUS_CHOICES = [
@@ -55,8 +81,14 @@ class Pedido(models.Model):
 		return f"Pedido #{self.id} - {self.cliente}"
 
 class ItemPedido(models.Model):
+	TIPO_CHOICES = [
+		('pizza', 'Pizza'),
+		('bebida', 'Bebida'),
+	]
 	pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name='itens')
-	pizza = models.ForeignKey(Pizza, on_delete=models.CASCADE)
+	item_tipo = models.CharField(max_length=10, choices=TIPO_CHOICES, default='pizza')
+	pizza = models.ForeignKey(Pizza, on_delete=models.CASCADE, null=True, blank=True, related_name='itens_pedido')
+	bebida = models.ForeignKey(Bebida, on_delete=models.CASCADE, null=True, blank=True, related_name='itens_pedido')
 	quantidade = models.PositiveIntegerField(default=1)
 	preco_unitario = models.DecimalField(max_digits=6, decimal_places=2)
 	sabores = models.TextField(blank=True, null=True, help_text='JSON com sabores múltiplos')
@@ -66,7 +98,11 @@ class ItemPedido(models.Model):
 	catupiry_borda = models.BooleanField(default=False)
 	
 	def __str__(self):
-		return f"{self.quantidade}x {self.pizza.nome}"
+		if self.item_tipo == 'bebida' and self.bebida:
+			return f"{self.quantidade}x {self.bebida.nome}"
+		if self.pizza:
+			return f"{self.quantidade}x {self.pizza.nome}"
+		return f"Item {self.id}"
 	
 	@property
 	def subtotal(self):

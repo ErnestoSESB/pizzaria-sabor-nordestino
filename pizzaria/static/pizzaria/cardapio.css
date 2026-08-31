@@ -38,6 +38,58 @@
     background-color: var(--bg-main);
 }
 
+.menu-order-action {
+    margin-top: 24px;
+    width: min(260px, 100%);
+    min-width: 220px;
+    border-radius: 999px;
+}
+
+.navbar-solid .container {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.navbar-solid .logo {
+    width: auto;
+    height: auto;
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+    display: flex;
+    margin: 0;
+}
+
+.navbar-solid .cart-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.main-footer .container,
+.bottom-footer .container {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.category-section {
+    margin-top: 52px;
+}
+
+.category-section:first-of-type {
+    margin-top: 0;
+}
+
+.category-heading {
+    margin-bottom: 24px;
+}
+
+.category-heading h2 {
+    font-family: var(--font-serif);
+    font-size: 2rem;
+}
+
 .menu-controls {
     display: flex;
     justify-content: space-between;
@@ -83,6 +135,51 @@
     gap: 10px;
 }
 
+@media (max-width: 720px) {
+    .menu-hero p br {
+        display: none;
+    }
+
+    .menu-controls {
+        justify-content: center;
+    }
+
+    .filter-buttons {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-filter {
+        flex: 1 1 140px;
+    }
+
+    .category-heading h2 {
+        font-size: 1.7rem;
+    }
+
+    .navbar-solid {
+        padding: 16px 0;
+    }
+
+    .navbar-solid .nav-container {
+        flex-wrap: wrap;
+        gap: 14px;
+    }
+
+    .navbar-solid .nav-links {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        gap: 18px;
+    }
+
+    .menu-order-action {
+        width: min(240px, 100%);
+        min-width: 0;
+    }
+}
+
 .btn-filter {
     background-color: var(--bg-card);
     color: var(--text-muted);
@@ -121,6 +218,17 @@
     font-weight: 600;
     border-radius: 4px;
     backdrop-filter: blur(4px);
+}
+
+.card-image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
+    color: var(--primary);
+    font-size: 2rem;
 }
 
 /* Ajuste no botão do cardapio para ter o icone de '+' */

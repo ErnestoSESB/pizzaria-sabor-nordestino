@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from datetime import datetime, timedelta
-from .models import Pizza, Pedido, ItemPedido
+from .models import Pizza, Pedido, ItemPedido, Bebida
 from .carrinho import Carrinho
 from .calculadora_preco import calcular_preco_pizza
 from urllib.parse import quote
@@ -19,11 +19,18 @@ def cardapio(request):
     return render(request, 'pizzaria/cardapio.html', {'pizzas': pizzas})
 
 def contato(request):
+	if request.method == 'POST':
+		nome = request.POST.get('nome', '').strip()
+		email = request.POST.get('email', '').strip()
+		mensagem = request.POST.get('mensagem', '').strip()
+		texto = f"Ola! Meu nome e {nome}.\nE-mail: {email}\n\n{mensagem}"
+		return redirect(f"https://wa.me/5584990346414?text={quote(texto)}")
 	return render(request, 'pizzaria/contato.html')
 
 # Escolher sabores
 def escolher_sabores(request):
 	pizzas = Pizza.objects.filter(disponivel=True)
+	bebidas = Bebida.objects.filter(disponivel=True)
 	pizzas_json = json.dumps([{
 		'id': p.id,
 		'nome': p.nome,
@@ -33,7 +40,8 @@ def escolher_sabores(request):
 	pizzas_especiais_json = json.dumps([p.id for p in pizzas if p.especial])
 	return render(request, 'pizzaria/escolher_sabores.html', {
 		'pizzas_json': pizzas_json,
-		'pizzas_especiais_json': pizzas_especiais_json
+		'pizzas_especiais_json': pizzas_especiais_json,
+		'bebidas': bebidas
 	})
 
 # Carrinho views
@@ -46,8 +54,14 @@ def carrinho_adicionar(request, pizza_id):
 def carrinho_adicionar_pizza(request):
 	if request.method == 'POST':
 		carrinho = Carrinho(request)
-		
-		# Dados do formulário
+		quer_bebida = request.POST.get('quer_bebida')
+		bebida_id = request.POST.get('bebida_id')
+
+		if quer_bebida == 'sim' and bebida_id:
+			bebida = get_object_or_404(Bebida, id=bebida_id)
+			carrinho.adicionar(bebida=bebida, quantidade=1, preco=float(bebida.preco))
+
+		# pizza flow
 		tamanho = request.POST.get('tamanho')
 		num_sabores = int(request.POST.get('num_sabores', 1))
 		borda_chocolate = request.POST.get('borda_chocolate') == 'on'
@@ -132,7 +146,9 @@ def carrinho_detalhes(request):
 	itens_processados = []
 	for item in carrinho:
 		item_data = {
-			'pizza': item['pizza'],
+			'tipo': item.get('tipo', 'pizza'),
+			'pizza': item.get('pizza'),
+			'bebida': item.get('bebida'),
 			'quantidade': item['quantidade'],
 			'preco': item['preco'],
 			'total': item['total'],
@@ -141,6 +157,11 @@ def carrinho_detalhes(request):
 			'borda_chocolate': item.get('borda_chocolate', False),
 			'catupiry_cima': item.get('catupiry_cima', 'nao'),
 			'catupiry_borda': item.get('catupiry_borda', False),
+			'tem_adicionais': (
+				item.get('borda_chocolate', False)
+				or item.get('catupiry_cima', 'nao') != 'nao'
+				or item.get('catupiry_borda', False)
+			),
 			'sabores_data': None
 		}
 		if item.get('sabores'):
@@ -217,9 +238,12 @@ def carrinho_finalizar(request):
 	
 	# Criar itens do pedido
 	for item in carrinho:
+		item_tipo = item.get('tipo', 'pizza')
 		ItemPedido.objects.create(
 			pedido=pedido,
-			pizza=item['pizza'],
+			item_tipo=item_tipo,
+			pizza=item['pizza'] if item_tipo == 'pizza' else None,
+			bebida=item['bebida'] if item_tipo == 'bebida' else None,
 			quantidade=item['quantidade'],
 			preco_unitario=item['preco'],
 			sabores=item.get('sabores'),
@@ -229,74 +253,10 @@ def carrinho_finalizar(request):
 			catupiry_borda=item.get('catupiry_borda', False)
 		)
 	
-	# Montar mensagem para WhatsApp
-	mensagem = "*NOVO PEDIDO - PIZZARIA SABOR NORDESTINO*\n\n"
-	mensagem += f"*Pedido #{pedido.id}*\n\n"
-	
-	mensagem += "*DADOS DO CLIENTE*\n"
-	mensagem += f"Nome: {nome}\n"
-	mensagem += f"Endereço: {endereco}\n\n"
-	
-	mensagem += "*PEDIDO*\n"
-	for item in carrinho:
-		# Descrição da pizza
-		if item.get('sabores'):
-			sabores_data = json.loads(item['sabores'])
-			mensagem += f"• {item['quantidade']}x Pizza {sabores_data['descricao']}\n"
-			mensagem += f"  Sabores: {', '.join(sabores_data['nomes'])}\n"
-		else:
-			mensagem += f"• {item['quantidade']}x {item['pizza'].nome}\n"
-			mensagem += f"  {item['pizza'].ingredientes}\n"
-		
-		# Tamanho
-		tamanhos = {'P': 'Pequena', 'M': 'Média', 'G': 'Grande'}
-		tamanho = item.get('tamanho', 'G')
-		mensagem += f"  Tamanho: {tamanhos.get(tamanho, 'Grande')}\n"
-		
-		# Adicionais
-		adicionais = []
-		if item.get('borda_chocolate'):
-			adicionais.append('Borda de Chocolate')
-		
-		catupiry_cima = item.get('catupiry_cima', 'nao')
-		if catupiry_cima == 'inteira':
-			adicionais.append('Catupiry Original por Cima (Inteira)')
-		elif catupiry_cima == 'metade':
-			adicionais.append('Catupiry Original por Cima (Metade)')
-		
-		if item.get('catupiry_borda'):
-			adicionais.append('Catupiry Original na Borda')
-		
-		if adicionais:
-			mensagem += f"  Adicionais: {', '.join(adicionais)}\n"
-		
-		mensagem += f"  R$ {item['preco']:.2f} x {item['quantidade']} = R$ {item['total']:.2f}\n\n"
-	
-	mensagem += f"*Subtotal: R$ {subtotal:.2f}*\n"
-	
-	# Taxa de entrega
-	if taxa_entrega > 0:
-		mensagem += f"*Taxa de Entrega ({nome_local}): R$ {taxa_entrega:.2f}*\n"
-	else:
-		mensagem += f"*{nome_local}*\n"
-	
-	mensagem += f"*TOTAL: R$ {total_final:.2f}*\n\n"
-	
-	mensagem += f"*Pagamento:* {pagamento}\n"
-	if pagamento == 'Dinheiro' and troco:
-		mensagem += f"Troco para: R$ {troco}\n"
-	
-	if observacoes:
-		mensagem += f"\n*Observações:*\n{observacoes}\n"
-	
-	mensagem += "\n*Aguardando confirmação e tempo de entrega!*"
-	
-	whatsapp_url = f"https://wa.me/5584999852976?text={quote(mensagem)}"
-	
 	# Limpar carrinho após finalizar
 	carrinho.limpar()
-	
-	return redirect(whatsapp_url)
+	messages.success(request, 'Pedido finalizado com sucesso!')
+	return redirect('carrinho_detalhes')
 
 @login_required(login_url='/login/')
 def painel(request):
@@ -380,8 +340,9 @@ def pizza_adicionar(request):
 		nome = request.POST.get('nome')
 		ingredientes = request.POST.get('ingredientes')
 		especial = request.POST.get('especial') == 'on'
+		categoria = 'doce' if request.POST.get('doce') == 'on' else 'salgada'
 		imagem = request.FILES.get('imagem')
-		Pizza.objects.create(nome=nome, ingredientes=ingredientes, especial=especial, imagem=imagem)
+		Pizza.objects.create(nome=nome, ingredientes=ingredientes, especial=especial, categoria=categoria, imagem=imagem)
 		return redirect('painel_pizzas')
 	return render(request, 'pizzaria/pizza_form.html')
 
@@ -392,6 +353,7 @@ def pizza_editar(request, pizza_id):
 		pizza.nome = request.POST.get('nome')
 		pizza.ingredientes = request.POST.get('ingredientes')
 		pizza.especial = request.POST.get('especial') == 'on'
+		pizza.categoria = 'doce' if request.POST.get('doce') == 'on' else 'salgada'
 		pizza.disponivel = request.POST.get('disponivel') == 'on'
 		if request.FILES.get('imagem'):
 			pizza.imagem = request.FILES['imagem']
@@ -405,6 +367,45 @@ def pizza_excluir(request, pizza_id):
 	pizza = get_object_or_404(Pizza, id=pizza_id)
 	pizza.delete()
 	return redirect('painel_pizzas')
+
+# Gerenciar Bebidas
+@login_required(login_url='/login/')
+def painel_bebidas(request):
+	bebidas = Bebida.objects.all().order_by('nome')
+	return render(request, 'pizzaria/painel_bebidas.html', {'bebidas': bebidas})
+
+@login_required(login_url='/login/')
+def bebida_adicionar(request):
+	if request.method == 'POST':
+		nome = request.POST.get('nome', '').strip()
+		descricao = request.POST.get('descricao', '').strip()
+		preco = request.POST.get('preco', '0')
+		disponivel = request.POST.get('disponivel') == 'on'
+		imagem = request.FILES.get('imagem')
+		Bebida.objects.create(nome=nome, descricao=descricao, imagem=imagem, preco=preco, disponivel=disponivel)
+		return redirect('painel_bebidas')
+	return render(request, 'pizzaria/bebida_form.html')
+
+@login_required(login_url='/login/')
+def bebida_editar(request, bebida_id):
+	bebida = get_object_or_404(Bebida, id=bebida_id)
+	if request.method == 'POST':
+		bebida.nome = request.POST.get('nome', '').strip()
+		bebida.descricao = request.POST.get('descricao', '').strip()
+		bebida.preco = request.POST.get('preco', '0')
+		bebida.disponivel = request.POST.get('disponivel') == 'on'
+		if request.FILES.get('imagem'):
+			bebida.imagem = request.FILES['imagem']
+		bebida.save()
+		return redirect('painel_bebidas')
+	return render(request, 'pizzaria/bebida_form.html', {'bebida': bebida})
+
+@login_required(login_url='/login/')
+@require_POST
+def bebida_excluir(request, bebida_id):
+	bebida = get_object_or_404(Bebida, id=bebida_id)
+	bebida.delete()
+	return redirect('painel_bebidas')
 
 # Gerenciar Pedidos
 @login_required(login_url='/login/')

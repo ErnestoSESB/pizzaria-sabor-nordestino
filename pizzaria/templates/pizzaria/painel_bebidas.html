@@ -1,0 +1,30 @@
+{% extends 'pizzaria/base.html' %}
+{% block title %}Gerenciar Bebidas{% endblock %}
+{% block header %}Gerenciar Bebidas{% endblock %}
+{% block header_sub %}<p>Adicione, edite ou remova bebidas disponíveis no cardápio</p>{% endblock %}
+{% block content %}
+  <div class="nav-links">
+    <a href="{% url 'painel' %}" class="btn btn-secondary">← Voltar ao Painel</a>
+    <a href="{% url 'bebida_adicionar' %}" class="btn">+ Nova Bebida</a>
+  </div>
+
+  {% for bebida in bebidas %}
+  <div class="card">
+    <h3>{{ bebida.nome }} {% if not bebida.disponivel %}<span style="color: #e65100;">(Indisponível)</span>{% endif %}</h3>
+    <p><strong>Descrição:</strong> {{ bebida.descricao|default:'Sem descrição' }}</p>
+    <p class="price">Preço: R$ {{ bebida.preco }}</p>
+    <div class="nav-links">
+      <a href="{% url 'bebida_editar' bebida.id %}" class="btn btn-secondary">Editar</a>
+      <form method="post" action="{% url 'bebida_excluir' bebida.id %}" onsubmit="return confirm('Tem certeza que deseja excluir esta bebida?')" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-secondary">Excluir</button>
+      </form>
+    </div>
+  </div>
+  {% empty %}
+  <div class="card">
+    <h3>Nenhuma bebida cadastrada</h3>
+    <p>Adicione bebidas para começar</p>
+  </div>
+  {% endfor %}
+{% endblock %}
