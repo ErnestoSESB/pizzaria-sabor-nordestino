@@ -16,7 +16,8 @@ def index(request):
 
 def cardapio(request):
     pizzas = Pizza.objects.filter(disponivel=True)
-    return render(request, 'pizzaria/cardapio.html', {'pizzas': pizzas})
+    bebidas = Bebida.objects.filter(disponivel=True)
+    return render(request, 'pizzaria/cardapio.html', {'pizzas': pizzas, 'bebidas': bebidas})
 
 def contato(request):
 	if request.method == 'POST':
