@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from .calculadora_preco import calcular_preco_pizza
-from .models import Bebida, Pedido, Pizza
+from .models import Bebida, Pedido, Pizza, TaxaEntrega
 
 
 class CalculadoraPrecoTests(TestCase):
@@ -53,6 +53,27 @@ class CheckoutCarrinhoTests(TestCase):
 		response = self.client.get(reverse('carrinho_finalizar'))
 		self.assertEqual(response.status_code, 405)
 
+	def test_remover_adicional_atualiza_preco_da_pizza(self):
+		self._popular_carrinho()
+		session = self.client.session
+		session['carrinho'][str(self.pizza.id)].update({
+			'preco': '53.00',
+			'borda_chocolate': True,
+			'catupiry_cima': 'metade',
+		})
+		session.save()
+
+		response = self.client.post(
+			reverse('carrinho_remover', args=[self.pizza.id]),
+			data={'adicional': 'catupiry_cima'},
+		)
+
+		self.assertRedirects(response, reverse('carrinho_detalhes'))
+		item = self.client.session['carrinho'][str(self.pizza.id)]
+		self.assertEqual(item['preco'], '46.00')
+		self.assertEqual(item['catupiry_cima'], 'nao')
+		self.assertTrue(item['borda_chocolate'])
+
 	def test_finalizar_cria_pedido_no_app(self):
 		self._popular_carrinho()
 		response = self.client.post(
@@ -69,9 +90,43 @@ class CheckoutCarrinhoTests(TestCase):
 		self.assertEqual(Pedido.objects.count(), 1)
 		pedido = Pedido.objects.first()
 		self.assertEqual(pedido.cliente, 'Cliente Teste')
+		self.assertEqual(pedido.status, 'Em andamento')
+		self.assertEqual(pedido.forma_pagamento, 'PIX')
 		self.assertEqual(pedido.subtotal, Decimal('39.00'))
 		self.assertEqual(pedido.total, Decimal('39.00'))
 		self.assertRedirects(response, reverse('carrinho_detalhes'))
+		pagina = self.client.get(reverse('carrinho_detalhes'))
+		self.assertContains(pagina, 'Pedido em andamento')
+		self.assertContains(pagina, 'Calabresa Teste')
+		self.assertContains(pagina, 'PIX')
+
+	def test_cliente_pode_acompanhar_dois_pedidos(self):
+		taxa = TaxaEntrega.objects.create(nome='Frutuoso Gomes', taxa='6.00', ativo=True)
+		self._popular_carrinho()
+		self.client.post(
+			reverse('carrinho_finalizar'),
+			data={'nome': 'Cliente Um', 'endereco': 'Rua A', 'pagamento': 'PIX', 'local_entrega': str(taxa.id)},
+		)
+
+		session = self.client.session
+		session['carrinho'] = {
+			str(self.pizza.id): {
+				'pizza_id': str(self.pizza.id), 'quantidade': 1, 'preco': '39.00', 'tamanho': 'G',
+				'borda_chocolate': True, 'catupiry_cima': 'nao', 'catupiry_borda': False, 'sabores': None,
+			}
+		}
+		session.save()
+		self.client.post(
+			reverse('carrinho_finalizar'),
+			data={'nome': 'Cliente Dois', 'endereco': '', 'pagamento': 'Dinheiro', 'local_entrega': 'local', 'troco': '50,00'},
+		)
+
+		pagina = self.client.get(reverse('carrinho_detalhes'))
+		self.assertContains(pagina, 'Pedido #001')
+		self.assertContains(pagina, 'Pedido #002')
+		self.assertContains(pagina, 'Frutuoso Gomes')
+		self.assertContains(pagina, 'Borda de Chocolate')
+		self.assertNotContains(pagina, 'Seu pedido ainda está vazio')
 
 
 class PainelBebidasTests(TestCase):
@@ -123,6 +178,65 @@ class PainelBebidasTests(TestCase):
 	def test_painel_bebidas_exige_login(self):
 		response = self.client.get(reverse('painel_bebidas'))
 		self.assertEqual(response.status_code, 302)
+
+	def test_pedido_pago_sai_dos_ativos_e_fica_no_historico(self):
+		pedido = Pedido.objects.create(cliente='Cliente Pago', total='39.00')
+		self.client.login(username='admin', password='123456')
+
+		response = self.client.post(
+			reverse('pedido_alterar_status', args=[pedido.id]),
+			data={'status': 'Pago'},
+		)
+
+		self.assertRedirects(response, reverse('painel_pedidos'))
+		ativos = self.client.get(reverse('painel_pedidos') + '?filtro=todos')
+		historico = self.client.get(reverse('historico_pedidos'))
+		self.assertNotContains(ativos, 'Cliente Pago')
+		self.assertContains(historico, 'Cliente Pago')
+
+	def test_pedido_pago_pode_ser_reaberto_com_novo_status(self):
+		pedido = Pedido.objects.create(cliente='Cliente Reaberto', total='39.00', status='Pago')
+		self.client.login(username='admin', password='123456')
+
+		response = self.client.post(
+			reverse('pedido_reabrir', args=[pedido.id]),
+			data={'status': 'Em preparo'},
+		)
+
+		self.assertRedirects(response, reverse('historico_pedidos'))
+		pedido.refresh_from_db()
+		self.assertEqual(pedido.status, 'Em preparo')
+		self.assertIsNotNone(pedido.reaberto_em)
+		self.client.post(
+			reverse('pedido_reabrir', args=[pedido.id]),
+			data={'status': 'Pago'},
+		)
+		pedido.refresh_from_db()
+		self.assertEqual(pedido.status, 'Em preparo')
+		self.client.post(
+			reverse('pedido_alterar_status', args=[pedido.id]),
+			data={'status': 'Pago'},
+		)
+		pedido.refresh_from_db()
+		self.assertIsNotNone(pedido.fechado_em)
+
+	def test_pedido_entregue_continua_ativo_ate_ser_pago(self):
+		pedido = Pedido.objects.create(cliente='Cliente Entregue', total='39.00')
+		self.client.login(username='admin', password='123456')
+
+		self.client.post(
+			reverse('pedido_alterar_status', args=[pedido.id]),
+			data={'status': 'Entregue'},
+		)
+		ativos = self.client.get(reverse('painel_pedidos') + '?filtro=todos')
+		self.assertContains(ativos, 'Cliente Entregue')
+
+		self.client.post(
+			reverse('pedido_alterar_status', args=[pedido.id]),
+			data={'status': 'Pago'},
+		)
+		ativos = self.client.get(reverse('painel_pedidos') + '?filtro=todos')
+		self.assertNotContains(ativos, 'Cliente Entregue')
 
 	def test_painel_bebidas_exibe_lista_para_admin(self):
 		self.client.login(username='admin', password='123456')

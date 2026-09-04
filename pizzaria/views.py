@@ -123,18 +123,38 @@ def carrinho_adicionar_pizza(request):
 @require_POST
 def carrinho_remover(request, item_id):
 	carrinho = Carrinho(request)
-	carrinho.remover(item_id)
+	adicional = request.POST.get('adicional')
+	if adicional:
+		carrinho.remover_adicional(item_id, adicional)
+	else:
+		carrinho.remover(item_id)
 	return redirect('carrinho_detalhes')
 
 def carrinho_detalhes(request):
 	carrinho = Carrinho(request)
 	from .models import TaxaEntrega
+	pedidos_em_andamento = []
+	ids_pedidos = request.session.get('pedidos_ids', [])
+	ultimo_pedido_id = request.session.get('ultimo_pedido_id')
+	if ultimo_pedido_id and ultimo_pedido_id not in ids_pedidos:
+		ids_pedidos.append(ultimo_pedido_id)
+	if ids_pedidos:
+		pedidos_em_andamento = list(Pedido.objects.filter(id__in=ids_pedidos).prefetch_related('itens__pizza', 'itens__bebida').order_by('-criado_em'))
+		for pedido in pedidos_em_andamento:
+			for item in pedido.itens.all():
+				item.sabores_nomes = []
+				if item.sabores:
+					try:
+						item.sabores_nomes = json.loads(item.sabores).get('nomes', [])
+					except (TypeError, ValueError):
+						pass
 	
 	# Ordem personalizada dos locais
 	ordem_locais = [
 		'Lucrécia',
 		'Lucrécia (Sítio)',
 		'Três Altos (Sítio)',
+		'Três Altos',
 		'Almino Afonso',
 		'Frutuoso Gomes'
 	]
@@ -175,7 +195,8 @@ def carrinho_detalhes(request):
 	return render(request, 'pizzaria/carrinho.html', {
 		'carrinho': carrinho,
 		'itens': itens_processados,
-		'taxas_entrega': taxas_entrega
+		'taxas_entrega': taxas_entrega,
+		'pedidos_em_andamento': pedidos_em_andamento,
 	})
 
 @require_POST
@@ -231,10 +252,13 @@ def carrinho_finalizar(request):
 		cliente=nome,
 		endereco=endereco,
 		observacao=observacoes,
+		forma_pagamento=pagamento,
+		troco=troco,
 		local_entrega=local_entrega,
 		taxa_entrega=taxa_entrega,
 		subtotal=subtotal,
-		total=total_final
+		total=total_final,
+		status='Em andamento'
 	)
 	
 	# Criar itens do pedido
@@ -256,7 +280,12 @@ def carrinho_finalizar(request):
 	
 	# Limpar carrinho após finalizar
 	carrinho.limpar()
-	messages.success(request, 'Pedido finalizado com sucesso!')
+	request.session['ultimo_pedido_id'] = pedido.id
+	ids_pedidos = request.session.get('pedidos_ids', [])
+	if pedido.id not in ids_pedidos:
+		ids_pedidos.append(pedido.id)
+	request.session['pedidos_ids'] = ids_pedidos
+	request.session.modified = True
 	return redirect('carrinho_detalhes')
 
 @login_required(login_url='/login/')
@@ -278,6 +307,19 @@ def painel(request):
 	
 	trinta_dias_atras = hoje - timedelta(days=30)
 	faturamento_mes = Pedido.objects.filter(criado_em__date__gte=trinta_dias_atras).aggregate(total=Sum('total'))['total'] or 0
+	faturamento_bruto = Pedido.objects.aggregate(total=Sum('total'))['total'] or 0
+
+	# Série diária usada pelo gráfico de vendas do dashboard
+	primeiro_pedido = Pedido.objects.order_by('criado_em').values_list('criado_em', flat=True).first()
+	data_inicial_grafico = timezone.localtime(primeiro_pedido).date() if primeiro_pedido else hoje
+	grafico_vendas = []
+	for dias_desde_inicio in range((hoje - data_inicial_grafico).days + 1):
+		data = data_inicial_grafico + timedelta(days=dias_desde_inicio)
+		total_dia = Pedido.objects.filter(criado_em__date=data).aggregate(total=Sum('total'))['total'] or 0
+		grafico_vendas.append({
+			'data': data.strftime('%d/%m'),
+			'valor': float(total_dia),
+		})
 	
 	# Ticket médio
 	pedidos_totais = Pedido.objects.count()
@@ -299,7 +341,7 @@ def painel(request):
 		'novos': Pedido.objects.filter(status='Novo').count(),
 		'preparo': Pedido.objects.filter(status='Em preparo').count(),
 		'prontos': Pedido.objects.filter(status='Pronto').count(),
-		'entregues': Pedido.objects.filter(status='Entregue').count(),
+		'pagos': Pedido.objects.filter(status='Pago').count(),
 	}
 	
 	# Pedidos por período
@@ -312,12 +354,15 @@ def painel(request):
 	).order_by('-total')[:5]
 	
 	context = {
+		'active_page': 'dashboard',
 		'pizzas_total': pizzas_total,
 		'pedidos_hoje': pedidos_hoje,
 		'pedidos_novos': pedidos_novos,
 		'faturamento_hoje': faturamento_hoje,
 		'faturamento_semana': faturamento_semana,
 		'faturamento_mes': faturamento_mes,
+		'faturamento_bruto': faturamento_bruto,
+		'grafico_vendas': grafico_vendas,
 		'ticket_medio': ticket_medio,
 		'pizza_mais_vendida': pizza_mais_vendida,
 		'tamanho_mais_vendido': tamanho_mais_vendido,
@@ -333,7 +378,7 @@ def painel(request):
 @login_required(login_url='/login/')
 def painel_pizzas(request):
 	pizzas = Pizza.objects.all().order_by('-criado_em')
-	return render(request, 'pizzaria/painel_pizzas.html', {'pizzas': pizzas})
+	return render(request, 'pizzaria/painel_pizzas.html', {'pizzas': pizzas, 'active_page': 'pizzas'})
 
 @login_required(login_url='/login/')
 def pizza_adicionar(request):
@@ -345,7 +390,7 @@ def pizza_adicionar(request):
 		imagem = request.FILES.get('imagem')
 		Pizza.objects.create(nome=nome, ingredientes=ingredientes, especial=especial, categoria=categoria, imagem=imagem)
 		return redirect('painel_pizzas')
-	return render(request, 'pizzaria/pizza_form.html')
+	return render(request, 'pizzaria/pizza_form.html', {'active_page': 'pizzas'})
 
 @login_required(login_url='/login/')
 def pizza_editar(request, pizza_id):
@@ -360,7 +405,7 @@ def pizza_editar(request, pizza_id):
 			pizza.imagem = request.FILES['imagem']
 		pizza.save()
 		return redirect('painel_pizzas')
-	return render(request, 'pizzaria/pizza_form.html', {'pizza': pizza})
+	return render(request, 'pizzaria/pizza_form.html', {'pizza': pizza, 'active_page': 'pizzas'})
 
 @login_required(login_url='/login/')
 @require_POST
@@ -373,7 +418,7 @@ def pizza_excluir(request, pizza_id):
 @login_required(login_url='/login/')
 def painel_bebidas(request):
 	bebidas = Bebida.objects.all().order_by('nome')
-	return render(request, 'pizzaria/painel_bebidas.html', {'bebidas': bebidas})
+	return render(request, 'pizzaria/painel_bebidas.html', {'bebidas': bebidas, 'active_page': 'bebidas'})
 
 @login_required(login_url='/login/')
 def bebida_adicionar(request):
@@ -385,7 +430,7 @@ def bebida_adicionar(request):
 		imagem = request.FILES.get('imagem')
 		Bebida.objects.create(nome=nome, descricao=descricao, imagem=imagem, preco=preco, disponivel=disponivel)
 		return redirect('painel_bebidas')
-	return render(request, 'pizzaria/bebida_form.html')
+	return render(request, 'pizzaria/bebida_form.html', {'active_page': 'bebidas'})
 
 @login_required(login_url='/login/')
 def bebida_editar(request, bebida_id):
@@ -399,7 +444,7 @@ def bebida_editar(request, bebida_id):
 			bebida.imagem = request.FILES['imagem']
 		bebida.save()
 		return redirect('painel_bebidas')
-	return render(request, 'pizzaria/bebida_form.html', {'bebida': bebida})
+	return render(request, 'pizzaria/bebida_form.html', {'bebida': bebida, 'active_page': 'bebidas'})
 
 @login_required(login_url='/login/')
 @require_POST
@@ -439,7 +484,7 @@ def painel_pedidos(request):
 		else:  # todos
 			pedidos = Pedido.objects.all()
 	
-	pedidos = pedidos.order_by('-criado_em')
+	pedidos = pedidos.exclude(status='Pago').order_by('-criado_em')
 	
 	# Processar sabores para cada pedido
 	pedidos_processados = []
@@ -463,9 +508,45 @@ def painel_pedidos(request):
 	
 	return render(request, 'pizzaria/painel_pedidos.html', {
 		'pedidos': pedidos_processados, 
+		'active_page': 'pedidos',
 		'filtro_atual': filtro,
 		'data_filtro': data_especifica
 	})
+
+@login_required(login_url='/login/')
+def historico_pedidos(request):
+	data_filtro = request.GET.get('data', '')
+	pedidos = Pedido.objects.all()
+	if data_filtro:
+		try:
+			data_obj = datetime.strptime(data_filtro, '%Y-%m-%d').date()
+			pedidos = pedidos.filter(criado_em__date=data_obj)
+		except ValueError:
+			data_filtro = ''
+	pedidos = pedidos.prefetch_related('itens__pizza', 'itens__bebida').order_by('-criado_em')
+	for pedido in pedidos:
+		for item in pedido.itens.all():
+			item.sabores_nomes = []
+			if item.sabores:
+				try:
+					item.sabores_nomes = json.loads(item.sabores).get('nomes', [])
+				except (TypeError, ValueError):
+					pass
+	return render(request, 'pizzaria/historico_pedidos.html', {'pedidos': pedidos, 'data_filtro': data_filtro, 'active_page': 'historico'})
+
+@login_required(login_url='/login/')
+@require_POST
+def pedido_reabrir(request, pedido_id):
+	pedido = get_object_or_404(Pedido, id=pedido_id)
+	novo_status = request.POST.get('status', '').strip()
+	status_reabertura = {valor for valor, _ in Pedido.STATUS_CHOICES if valor != 'Pago'}
+	if novo_status in status_reabertura:
+		pedido.status = novo_status
+		pedido.reaberto_em = timezone.now()
+		pedido.save(update_fields=['status', 'reaberto_em', 'atualizado_em'])
+	else:
+		messages.error(request, 'Escolha um status válido para reabrir o pedido.')
+	return redirect('historico_pedidos')
 
 @login_required(login_url='/login/')
 def pedido_adicionar(request):
@@ -509,7 +590,7 @@ def pedido_adicionar(request):
 		return redirect('painel_pedidos')
 	
 	pizzas = Pizza.objects.filter(disponivel=True)
-	return render(request, 'pizzaria/pedido_form.html', {'pizzas': pizzas})
+	return render(request, 'pizzaria/pedido_form.html', {'pizzas': pizzas, 'active_page': 'pedidos'})
 
 @login_required(login_url='/login/')
 @require_POST
@@ -519,6 +600,8 @@ def pedido_alterar_status(request, pedido_id):
 	status_validos = {valor for valor, _ in Pedido.STATUS_CHOICES}
 	if novo_status in status_validos:
 		pedido.status = novo_status
+		if novo_status == 'Pago':
+			pedido.fechado_em = timezone.now()
 		pedido.save()
 	else:
 		messages.error(request, 'Status inválido para o pedido.')

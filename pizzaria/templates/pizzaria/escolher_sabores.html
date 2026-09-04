@@ -205,37 +205,75 @@
     </section>
 
     <footer>
-        <div class="main-footer" style="border-top: 1px solid var(--border-color);">
+        <div class="info-bar">
+            <div class="container info-grid">
+                <div class="info-item">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <div>
+                        <h4>Onde estamos</h4>
+                        <p>Av. Ivan Cavalcante - 21, Lucrecia RN</p>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fa-solid fa-phone"></i>
+                    <div>
+                        <h4>Telefone</h4>
+                        <p>(84) 99034-6414</p>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <i class="fa-regular fa-clock"></i>
+                    <div>
+                        <h4>Horário</h4>
+                        <p>Ter a Dom · à partir das 18h</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-footer">
             <div class="container footer-grid">
                 <div class="footer-brand">
                     <div class="logo">
                         <i class="fa-solid fa-fire text-primary"></i>
-                        <span class="logo-text">Brasa <span class="text-primary">&</span> Brasa</span>
+                        <span class="logo-text">Sabor <span class="text-primary">&</span> Nordestino</span>
                     </div>
                     <p>Pizzas com massa de fermentação natural, assadas no forno a lenha. O sabor que acende a sua fome.</p>
+                    <div class="social-links">
+                        <a href="https://www.instagram.com/pizzariasabornordestinoo?utm_source=ig_web_button_share_sheet&amp;igsi=ZDNlZDc0MzIxNw=="><i class="fa-brands fa-instagram"></i></a>
+                        <a href="https://api.whatsapp.com/send/?phone=5584990346414&amp;text&amp;type=phone_number&amp;app_absent=0"><i class="fa-brands fa-whatsapp"></i></a>
+                    </div>
                 </div>
 
                 <div class="footer-links">
                     <h4>Navegação</h4>
                     <ul>
-                        <li><a href="#">Início</a></li>
-                        <li><a href="#">Cardápio</a></li>
-                        <li><a href="#">Contato</a></li>
+                        <li><a href="{% url 'index' %}">Início</a></li>
+                        <li><a href="{% url 'cardapio' %}">Cardápio</a></li>
+                        <li><a href="{% url 'contato' %}">Contato</a></li>
+                        <li><a href="{% url 'painel' %}">Painel Admin</a></li>
                     </ul>
                 </div>
 
                 <div class="footer-contact">
                     <h4>Contato</h4>
                     <ul>
-                        <li><i class="fa-solid fa-location-dot"></i> Av. das Brasas, 123 — Centro, Fortaleza/CE</li>
-                        <li><i class="fa-solid fa-phone"></i> (85) 3456-7890</li>
+                        <li><i class="fa-solid fa-location-dot"></i> Av. Ivan Cavalcante - 21, Lucrecia RN</li>
+                        <li><i class="fa-solid fa-phone"></i> (84) 99034-6414</li>
+                        <li><i class="fa-regular fa-clock"></i> Ter a Dom · à partir das 18h</li>
                     </ul>
+                </div>
+
+                <div class="footer-about">
+                    <h4>Sobre nós</h4>
+                    <p>Uma pizzaria artesanal feita com paixão. Ingredientes frescos, massa de fermentação natural e o aroma inconfundível do forno a lenha.</p>
                 </div>
             </div>
         </div>
+
         <div class="bottom-footer">
             <div class="container">
-                <p>&copy; 2026 Brasa & Brasa Pizzaria. Todos os direitos reservados.</p>
+                <p>&copy; 2026 Sabor_Nordestino. Todos os direitos reservados.</p>
                 <p>Feito com fogo e paixão.</p>
             </div>
         </div>

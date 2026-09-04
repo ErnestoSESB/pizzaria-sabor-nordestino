@@ -138,6 +138,83 @@
   border-bottom: 1px solid var(--border-color);
 }
 
+.tracking-card {
+  border-color: rgba(255, 87, 34, 0.28);
+}
+
+.tracking-header,
+.tracking-item,
+.tracking-details > div,
+.tracking-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.tracking-eyebrow,
+.tracking-details span,
+.tracking-item span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.tracking-header h2 {
+  margin: 4px 0 0;
+  color: var(--text-light);
+  font-family: var(--font-serif);
+}
+
+.tracking-status {
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(255, 152, 0, 0.14);
+  color: #ffb74d;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.tracking-message {
+  margin: 18px 0;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.tracking-items {
+  display: grid;
+  gap: 12px;
+  padding: 16px 0;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tracking-item > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.tracking-details {
+  display: grid;
+  gap: 12px;
+  padding: 18px 0;
+}
+
+.tracking-details strong {
+  color: var(--text-light);
+  text-align: right;
+}
+
+.tracking-total {
+  color: var(--text-light);
+  font-size: 1.15rem;
+}
+
+.tracking-total strong {
+  color: var(--primary);
+  font-size: 1.3rem;
+}
+
 /* Item do Carrinho */
 .item-header {
   margin-bottom: 20px;
@@ -176,6 +253,41 @@
 .item-details .label {
   font-weight: 600;
   color: var(--text-light);
+}
+
+.item-addons li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-muted);
+}
+
+.remove-addon-form {
+  display: inline-flex;
+  margin: 0;
+}
+
+.remove-addon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.42);
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.remove-addon-btn:hover,
+.remove-addon-btn:focus-visible {
+  color: var(--primary);
+  background-color: rgba(255, 87, 34, 0.1);
+  outline: none;
 }
 
 .item-subtotal {

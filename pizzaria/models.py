@@ -61,14 +61,18 @@ class Bebida(models.Model):
 class Pedido(models.Model):
 	STATUS_CHOICES = [
 		("Novo", "Novo"),
+		("Em andamento", "Em andamento"),
 		("Em preparo", "Em preparo"),
 		("Pronto", "Pronto"),
 		("Entregue", "Entregue"),
+		("Pago", "Pago"),
 	]
 	cliente = models.CharField(max_length=100)
 	telefone = models.CharField(max_length=20, default='')
 	endereco = models.TextField(blank=True, null=True)
 	observacao = models.TextField(blank=True, null=True)
+	forma_pagamento = models.CharField(max_length=30, default='', blank=True)
+	troco = models.CharField(max_length=30, default='', blank=True)
 	local_entrega = models.ForeignKey(TaxaEntrega, on_delete=models.SET_NULL, null=True, blank=True, help_text='Local de entrega (se aplicável)')
 	taxa_entrega = models.DecimalField(max_digits=6, decimal_places=2, default=0, help_text='Valor da taxa de entrega')
 	subtotal = models.DecimalField(max_digits=8, decimal_places=2, default=0, help_text='Total sem taxa de entrega')
@@ -76,6 +80,8 @@ class Pedido(models.Model):
 	status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Novo")
 	criado_em = models.DateTimeField(auto_now_add=True)
 	atualizado_em = models.DateTimeField(auto_now=True)
+	reaberto_em = models.DateTimeField(null=True, blank=True)
+	fechado_em = models.DateTimeField(null=True, blank=True)
 
 	def __str__(self):
 		return f"Pedido #{self.id} - {self.cliente}"

@@ -63,6 +63,51 @@
 
     <section class="checkout-section">
       <div class="container checkout-container">
+        {% if pedidos_em_andamento and not itens %}
+        {% for pedido_em_andamento in pedidos_em_andamento %}
+        <div class="checkout-card tracking-card">
+          <div class="tracking-header">
+            <div>
+              <span class="tracking-eyebrow">Acompanhamento</span>
+              <h2>Pedido #{{ pedido_em_andamento.id|stringformat:"03d" }}</h2>
+            </div>
+            <span class="tracking-status">{{ pedido_em_andamento.status }}</span>
+          </div>
+
+          <p class="tracking-message">Pedido em andamento</p>
+
+          <div class="tracking-items">
+            {% for item in pedido_em_andamento.itens.all %}
+            <div class="tracking-item">
+              <div>
+                <strong>{{ item.quantidade }}x {% if item.item_tipo == 'bebida' %}{{ item.bebida.nome }}{% elif item.sabores_nomes %}Pizza: {{ item.sabores_nomes|join:', ' }}{% else %}{{ item.pizza.nome }}{% endif %}</strong>
+                {% if item.item_tipo == 'pizza' %}
+                <span>{% if item.tamanho == 'P' %}Pequena{% elif item.tamanho == 'M' %}Média{% else %}Grande{% endif %}</span>
+                {% if item.borda_chocolate or item.catupiry_cima != 'nao' or item.catupiry_borda %}
+                <span>Adicionais:{% if item.borda_chocolate %} Borda de Chocolate{% endif %}{% if item.catupiry_cima == 'inteira' %} Catupiry por Cima (Inteira){% endif %}{% if item.catupiry_cima == 'metade' %} Catupiry por Cima (Metade){% endif %}{% if item.catupiry_borda %} Catupiry na Borda{% endif %}</span>
+                {% endif %}
+                {% endif %}
+              </div>
+              <strong>R$ {{ item.subtotal }}</strong>
+            </div>
+            {% endfor %}
+          </div>
+
+          <div class="tracking-details">
+            <div><span>Receber em: </span><strong>{% if pedido_em_andamento.local_entrega %}{{ pedido_em_andamento.local_entrega.nome }}{% else %}Retirada no local{% endif %}</strong></div>
+            <div><span>Endereço: </span><strong>{% if pedido_em_andamento.endereco %}{{ pedido_em_andamento.endereco }}{% else %}Retirada no local{% endif %}</strong></div>
+            <div><span>Pagamento: </span><strong>{{ pedido_em_andamento.forma_pagamento }}</strong></div>
+            {% if pedido_em_andamento.observacao %}<div><span>Observações: </span><strong>{{ pedido_em_andamento.observacao }}</strong></div>{% endif %}
+          </div>
+
+          <div class="tracking-total">
+            <span>Total do pedido</span>
+            <strong>R$ {{ pedido_em_andamento.total }}</strong>
+          </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+
         {% if itens %}
         <a
           href="{% url 'escolher_sabores' %}"
@@ -130,13 +175,49 @@
             <p><strong>Adicionais:</strong></p>
             <ul>
               {% if item.borda_chocolate %}
-              <li>Borda de Chocolate</li>
+              <li>
+                <span>Borda de Chocolate</span>
+                <form method="post" action="{% url 'carrinho_remover' item.item_id %}" class="remove-addon-form">
+                  {% csrf_token %}
+                  <input type="hidden" name="adicional" value="borda_chocolate" />
+                  <button type="submit" class="remove-addon-btn" aria-label="Remover borda de chocolate" title="Remover adicional">
+                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                  </button>
+                </form>
+              </li>
               {% endif %} {% if item.catupiry_cima == 'inteira' %}
-              <li>Catupiry por Cima (Inteira)</li>
+              <li>
+                <span>Catupiry por Cima (Inteira)</span>
+                <form method="post" action="{% url 'carrinho_remover' item.item_id %}" class="remove-addon-form">
+                  {% csrf_token %}
+                  <input type="hidden" name="adicional" value="catupiry_cima" />
+                  <button type="submit" class="remove-addon-btn" aria-label="Remover catupiry por cima" title="Remover adicional">
+                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                  </button>
+                </form>
+              </li>
               {% endif %} {% if item.catupiry_cima == 'metade' %}
-              <li>Catupiry por Cima (Metade)</li>
+              <li>
+                <span>Catupiry por Cima (Metade)</span>
+                <form method="post" action="{% url 'carrinho_remover' item.item_id %}" class="remove-addon-form">
+                  {% csrf_token %}
+                  <input type="hidden" name="adicional" value="catupiry_cima" />
+                  <button type="submit" class="remove-addon-btn" aria-label="Remover catupiry por cima" title="Remover adicional">
+                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                  </button>
+                </form>
+              </li>
               {% endif %} {% if item.catupiry_borda %}
-              <li>Catupiry na Borda</li>
+              <li>
+                <span>Catupiry na Borda</span>
+                <form method="post" action="{% url 'carrinho_remover' item.item_id %}" class="remove-addon-form">
+                  {% csrf_token %}
+                  <input type="hidden" name="adicional" value="catupiry_borda" />
+                  <button type="submit" class="remove-addon-btn" aria-label="Remover catupiry na borda" title="Remover adicional">
+                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                  </button>
+                </form>
+              </li>
               {% endif %}
             </ul>
           </div>
@@ -159,6 +240,7 @@
         </div>
         {% endfor %} {% endif %}
 
+        {% if itens %}
         <div class="checkout-card order-summary">
           <h3 class="card-title">Resumo do Pedido</h3>
 
@@ -237,16 +319,22 @@
             <span id="total-final">R$ {{ carrinho.get_total }}</span>
           </div>
         </div>
+        {% endif %}
 
         {% if not itens %}
         <div class="checkout-card empty-state">
+          {% if not pedidos_em_andamento %}
           <h3 class="card-title">Pedido Vazio</h3>
           <p>Você ainda não adicionou nenhum item ao seu pedido.</p>
+          {% else %}
+          <h3 class="card-title">Fazer outro pedido</h3>
+          <p>Escolha mais itens para realizar um novo pedido.</p>
+          {% endif %}
           <a href="{% url 'cardapio' %}" class="btn btn-primary btn-block mt-3"
             >Ver Cardápio</a
           >
         </div>
-        {% else %}
+        {% elif itens %}
         <div class="checkout-card delivery-form">
           <h3 class="card-title">Dados para Entrega</h3>
 
@@ -287,14 +375,6 @@
                   </option>
                   <option value="local" data-taxa="0">
                     Retirar no local (sem taxa)
-                  </option>
-                  <option value="local" data-taxa="0">Lucrecia, RN</option>
-                  <option value="local" data-taxa="0">
-                    Frutuoso Gomes, RN
-                  </option>
-                  <option value="local" data-taxa="0">Almino Afonso, RN</option>
-                  <option value="local" data-taxa="0">
-                    Rafael Godeiro, RN
                   </option>
                   {% for taxa in taxas_entrega %}
                   <option value="{{ taxa.id }}" data-taxa="{{ taxa.taxa }}">
@@ -354,6 +434,14 @@
                 placeholder="Ex: 50,00"
               />
             </div>
+
+            <button
+              type="submit"
+              class="btn btn-primary btn-block"
+              id="btn-finalizar-app"
+            >
+              <i class="fa-solid fa-check-circle"></i> Finalizar pedido no app
+            </button>
 
             <button
               type="submit"
@@ -426,7 +514,7 @@
               <li><a href="#">Início</a></li>
               <li><a href="#">Cardápio</a></li>
               <li><a href="#">Contato</a></li>
-              <li><a href="#">Painel Admin</a></li>
+              <li><a href="{% url 'painel' %}">Painel Admin</a></li>
             </ul>
           </div>
 

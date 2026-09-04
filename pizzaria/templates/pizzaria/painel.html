@@ -1,119 +1,134 @@
-{% extends 'pizzaria/base.html' %}
-{% block title %}Painel Administrativo{% endblock %}
-{% block header %}Dashboard - Painel de Controle{% endblock %}
-{% block header_sub %}<p>Métricas e gestão da pizzaria</p>{% endblock %}
-{% block content %}
-  <div class="nav-links">
-    <a href="{% url 'painel_pizzas' %}" class="btn">Gerenciar Pizzas</a>
-    <a href="{% url 'painel_bebidas' %}" class="btn">Gerenciar Bebidas</a>
-    <a href="{% url 'painel_pedidos' %}" class="btn">Gerenciar Pedidos</a>
-    <form method="post" action="{% url 'logout' %}" style="display:inline;">
-      {% csrf_token %}
-      <button type="submit" class="btn btn-secondary">Sair</button>
-    </form>
-  </div>
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sabor &amp; Nordestino</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'pizzaria/index.css' %}">
+    <link rel="stylesheet" href="{% static 'pizzaria/painel.css' %}">
+    <link rel="stylesheet" href="{% static 'pizzaria/painel_sidebar.css' %}?v=3">
+</head>
+<body class="admin-body">
+    <div class="admin-layout">
+        {% include 'pizzaria/partials/painel_sidebar.html' with active_page='dashboard' %}
 
-  <!-- Seção: Faturamento -->
-  <h3 style="margin-top: 2rem; color: var(--vermelho);">Faturamento</h3>
-  <div class="features">
-    <div class="feature-card" style="background: linear-gradient(135deg, #2e7d32 0%, #4caf50 100%); color: white;">
-      <div class="feature-icon" style="color: white; font-size: 2rem;">R$</div>
-      <h4 style="color: white;">{{ faturamento_hoje|floatformat:2 }}</h4>
-      <p style="color: rgba(255,255,255,0.9);">Faturamento Hoje</p>
-    </div>
-    
-    <div class="feature-card" style="background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%); color: white;">
-      <div class="feature-icon" style="color: white; font-size: 2rem;">R$</div>
-      <h4 style="color: white;">{{ faturamento_semana|floatformat:2 }}</h4>
-      <p style="color: rgba(255,255,255,0.9);">Últimos 7 Dias</p>
-    </div>
-    
-    <div class="feature-card" style="background: linear-gradient(135deg, #7b1fa2 0%, #9c27b0 100%); color: white;">
-      <div class="feature-icon" style="color: white; font-size: 2rem;">R$</div>
-      <h4 style="color: white;">{{ faturamento_mes|floatformat:2 }}</h4>
-      <p style="color: rgba(255,255,255,0.9);">Últimos 30 Dias</p>
-    </div>
-  </div>
+        <main class="admin-content">
+            <header class="admin-header">
+                <div><h1>Métricas e Gestão</h1><p>Acompanhe o desempenho da sua pizzaria hoje.</p></div>
+                <div class="admin-profile"><div class="avatar"><i class="fa-solid fa-user-tie"></i></div><span>{{ request.user.get_full_name|default:request.user.username }}</span></div>
+            </header>
 
-  <!-- Seção: Pedidos -->
-  <h3 style="margin-top: 2rem; color: var(--vermelho);">Pedidos</h3>
-  <div class="features">
-    <div class="feature-card">
-      <div class="feature-icon" style="color: #2e7d32;">{{ pedidos_hoje }}</div>
-      <h4>Hoje</h4>
-      <p>Pedidos recebidos</p>
-    </div>
-    
-    <div class="feature-card">
-      <div class="feature-icon" style="color: #1976d2;">{{ pedidos_semana }}</div>
-      <h4>Esta Semana</h4>
-      <p>Últimos 7 dias</p>
-    </div>
-    
-    <div class="feature-card">
-      <div class="feature-icon" style="color: #e65100;">{{ pedidos_novos }}</div>
-      <h4>Pedidos Novos</h4>
-      <p>Aguardando preparo</p>
-    </div>
+            <section class="dashboard-section">
+                <h2 class="section-title">Faturamento</h2>
+                <div class="metrics-grid grid-4">
+                    <div class="metric-card accent-green"><div class="card-icon"><i class="fa-solid fa-money-bill-wave"></i></div><div class="card-data"><h3>R$ {{ faturamento_hoje|floatformat:2 }}</h3><p>Faturamento Hoje</p></div></div>
+                    <div class="metric-card accent-blue"><div class="card-icon"><i class="fa-solid fa-calendar-week"></i></div><div class="card-data"><h3>R$ {{ faturamento_semana|floatformat:2 }}</h3><p>Últimos 7 Dias</p></div></div>
+                    <div class="metric-card accent-purple"><div class="card-icon"><i class="fa-solid fa-calendar-days"></i></div><div class="card-data"><h3>R$ {{ faturamento_mes|floatformat:2 }}</h3><p>Últimos 30 Dias</p></div></div>
+                    <div class="metric-card accent-green"><div class="card-icon"><i class="fa-solid fa-chart-line"></i></div><div class="card-data"><h3>R$ {{ faturamento_bruto|floatformat:2 }}</h3><p>Faturamento Bruto</p></div></div>
+                </div>
+            </section>
 
-    <div class="feature-card">
-      <div class="feature-icon" style="color: #7b1fa2;">R$ {{ ticket_medio|floatformat:2 }}</div>
-      <h4>Ticket Médio</h4>
-      <p>Valor médio por pedido</p>
-    </div>
-  </div>
+            <section class="dashboard-section sales-chart-section">
+                <div class="chart-heading">
+                    <div>
+                        <h2 class="section-title">Vendas</h2>
+                        <p class="chart-subtitle">Acompanhe o faturamento por período.</p>
+                    </div>
+                    <div class="chart-filters" role="group" aria-label="Filtrar faturamento do gráfico">
+                        <button type="button" class="chart-filter active" data-period="1">Hoje</button>
+                        <button type="button" class="chart-filter" data-period="7">Últimos 7 dias</button>
+                        <button type="button" class="chart-filter" data-period="30">Últimos 30 dias</button>
+                        <button type="button" class="chart-filter" data-period="bruto">Faturamento bruto</button>
+                    </div>
+                </div>
+                <div class="sales-chart-card">
+                    <canvas id="sales-chart" aria-label="Gráfico de linha do faturamento"></canvas>
+                </div>
+            </section>
 
-  <!-- Seção: Status dos Pedidos -->
-  <h3 style="margin-top: 2rem; color: var(--vermelho);">Status dos Pedidos</h3>
-  <div class="features">
-    <div class="feature-card" style="border-left: 4px solid #ff9800;">
-      <div class="feature-icon" style="color: #ff9800;">{{ status_pedidos.novos }}</div>
-      <h4>Novos</h4>
-      <p>Aguardando</p>
-    </div>
-    
-    <div class="feature-card" style="border-left: 4px solid #2196f3;">
-      <div class="feature-icon" style="color: #2196f3;">{{ status_pedidos.preparo }}</div>
-      <h4>Em Preparo</h4>
-      <p>Na cozinha</p>
-    </div>
-    
-    <div class="feature-card" style="border-left: 4px solid #4caf50;">
-      <div class="feature-icon" style="color: #4caf50;">{{ status_pedidos.prontos }}</div>
-      <h4>Prontos</h4>
-      <p>Para retirada</p>
-    </div>
-    
-    <div class="feature-card" style="border-left: 4px solid #9e9e9e;">
-      <div class="feature-icon" style="color: #9e9e9e;">{{ status_pedidos.entregues }}</div>
-      <h4>Entregues</h4>
-      <p>Finalizados</p>
-    </div>
-  </div>
+            <section class="dashboard-section">
+                <h2 class="section-title">Pedidos</h2>
+                <div class="metrics-grid grid-4">
+                    <div class="metric-card"><div class="card-data text-center"><h3 class="text-green">{{ pedidos_hoje }}</h3><h4>Hoje</h4><p>Pedidos recebidos</p></div></div>
+                    <div class="metric-card"><div class="card-data text-center"><h3 class="text-blue">{{ pedidos_semana }}</h3><h4>Esta Semana</h4><p>Últimos 7 dias</p></div></div>
+                    <div class="metric-card"><div class="card-data text-center"><h3 class="text-orange">{{ pedidos_novos }}</h3><h4>Pedidos Novos</h4><p>Aguardando preparo</p></div></div>
+                    <div class="metric-card"><div class="card-data text-center"><h3 class="text-purple">R$ {{ ticket_medio|floatformat:2 }}</h3><h4>Ticket Médio</h4><p>Valor médio por pedido</p></div></div>
+                </div>
+            </section>
 
-  <!-- Seção: Análise de Produtos -->
-  <h3 style="margin-top: 2rem; color: var(--vermelho);">Análise de Produtos</h3>
-  <div class="features">
-    <div class="feature-card" style="background: #fff3e0;">
-      <div class="feature-icon" style="color: #e65100;">{{ pizzas_total }}</div>
-      <h4>Pizzas Cadastradas</h4>
-      <p>Total no cardápio</p>
-    </div>
-    
-    <div class="feature-card" style="background: #e8f5e9;">
-      <div class="feature-icon" style="color: #2e7d32; font-size: 1.5rem;">★</div>
-      <h4>Mais Vendida</h4>
-      <p>{% if pizza_mais_vendida %}{{ pizza_mais_vendida.pizza__nome }} ({{ pizza_mais_vendida.total }}x){% else %}N/A{% endif %}</p>
-    </div>
-    
-    <div class="feature-card" style="background: #e3f2fd;">
-      <div class="feature-icon" style="color: #1976d2; font-size: 1.5rem;">■</div>
-      <h4>Tamanho Preferido</h4>
-      <p>{% if tamanho_mais_vendido %}
-        {% if tamanho_mais_vendido.tamanho == 'P' %}Pequena{% elif tamanho_mais_vendido.tamanho == 'M' %}Média{% else %}Grande{% endif %}
-        ({{ tamanho_mais_vendido.total }}x)
-      {% else %}N/A{% endif %}</p>
-    </div>
-  </div>
+            <section class="dashboard-section">
+                <h2 class="section-title">Status dos Pedidos</h2>
+                <div class="metrics-grid grid-4">
+                    <div class="metric-card border-orange"><div class="card-data text-center"><h3 class="text-orange">{{ status_pedidos.novos }}</h3><h4>Novos</h4><p>Aguardando</p></div></div>
+                    <div class="metric-card border-blue"><div class="card-data text-center"><h3 class="text-blue">{{ status_pedidos.preparo }}</h3><h4>Em Preparo</h4><p>Na cozinha</p></div></div>
+                    <div class="metric-card border-green"><div class="card-data text-center"><h3 class="text-green">{{ status_pedidos.prontos }}</h3><h4>Prontos</h4><p>Para retirada/entrega</p></div></div>
+                    <div class="metric-card border-gray"><div class="card-data text-center"><h3 class="text-muted">{{ status_pedidos.pagos }}</h3><h4>Pagos</h4><p>Finalizados</p></div></div>
+                </div>
+            </section>
 
-{% endblock %}
+            <section class="dashboard-section">
+                <h2 class="section-title">Análise de Produtos</h2>
+                <div class="metrics-grid grid-3">
+                    <div class="metric-card"><div class="card-data text-center"><h3 class="text-primary">{{ pizzas_total }}</h3><h4>Pizzas Cadastradas</h4><p>Total no cardápio</p></div></div>
+                    <div class="metric-card"><div class="card-data text-center"><i class="fa-solid fa-star text-green mb-2" style="font-size: 1.5rem;"></i><h4>Mais Vendida</h4><p>{% if pizza_mais_vendida %}{{ pizza_mais_vendida.pizza__nome }} ({{ pizza_mais_vendida.total }}x){% else %}Nenhuma venda{% endif %}</p></div></div>
+                    <div class="metric-card"><div class="card-data text-center"><i class="fa-solid fa-chart-simple text-blue mb-2" style="font-size: 1.5rem;"></i><h4>Tamanho Preferido</h4><p>{% if tamanho_mais_vendido %}{% if tamanho_mais_vendido.tamanho == 'P' %}Pequena{% elif tamanho_mais_vendido.tamanho == 'M' %}Média{% else %}Grande{% endif %} ({{ tamanho_mais_vendido.total }}x){% else %}Nenhum pedido{% endif %}</p></div></div>
+                </div>
+            </section>
+        </main>
+    </div>
+    {{ grafico_vendas|json_script:"grafico-vendas-data" }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script>
+        const vendas = JSON.parse(document.getElementById('grafico-vendas-data').textContent);
+        const chartCanvas = document.getElementById('sales-chart');
+        const chartContext = chartCanvas.getContext('2d');
+        const salesChart = new Chart(chartContext, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Faturamento',
+                    data: [],
+                    borderColor: '#7b1fa2',
+                    backgroundColor: 'rgba(76, 175, 80, 0.16)',
+                    fill: true,
+                    tension: 0.35,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#4caf50',
+                    pointBorderColor: '#7b1fa2'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, ticks: { callback: value => `R$ ${Number(value).toFixed(2).replace('.', ',')}` } },
+                    x: { grid: { display: false } }
+                },
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: context => `R$ ${Number(context.raw).toFixed(2).replace('.', ',')}` } } }
+            }
+        });
+
+        function atualizarGrafico(periodo) {
+            const dados = periodo === 'bruto' ? vendas : vendas.slice(-Number(periodo));
+            salesChart.data.labels = dados.map(item => item.data);
+            salesChart.data.datasets[0].data = dados.map(item => item.valor);
+            salesChart.update();
+        }
+
+        document.querySelectorAll('.chart-filter').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.chart-filter').forEach(item => item.classList.remove('active'));
+                button.classList.add('active');
+                atualizarGrafico(Number(button.dataset.period));
+            });
+        });
+        atualizarGrafico(1);
+    </script>
+</body>
+</html>

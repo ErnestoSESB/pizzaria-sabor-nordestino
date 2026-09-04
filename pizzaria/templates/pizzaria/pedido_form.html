@@ -1,55 +1,81 @@
-{% extends 'pizzaria/base.html' %}
-{% block title %}Registrar Novo Pedido{% endblock %}
-{% block header %}Registrar Novo Pedido{% endblock %}
-{% block header_sub %}<p>Registre pedidos recebidos pelo WhatsApp</p>{% endblock %}
-{% block content %}
-  <a href="{% url 'painel_pedidos' %}" class="btn btn-secondary">← Voltar</a>
-  
-  <div class="card">
-    <form method="post" id="formPedido">
-      {% csrf_token %}
-      <label for="cliente"><strong>Nome do Cliente:</strong></label>
-      <input type="text" id="cliente" name="cliente" required style="width:100%;padding:12px;margin-bottom:16px;border:2px solid var(--cinza);border-radius:8px;">
-      
-      <label for="telefone"><strong>Telefone:</strong></label>
-      <input type="tel" id="telefone" name="telefone" required style="width:100%;padding:12px;margin-bottom:16px;border:2px solid var(--cinza);border-radius:8px;">
-      
-      <label for="endereco"><strong>Endereço (opcional):</strong></label>
-      <textarea id="endereco" name="endereco" rows="2" style="width:100%;padding:12px;margin-bottom:16px;border:2px solid var(--cinza);border-radius:8px;"></textarea>
-      
-      <label for="observacao"><strong>Observação (opcional):</strong></label>
-      <textarea id="observacao" name="observacao" rows="2" style="width:100%;padding:12px;margin-bottom:16px;border:2px solid var(--cinza);border-radius:8px;"></textarea>
-      
-      <h4>Itens do Pedido:</h4>
-      <div id="itens-container">
-        <div class="item-pedido" style="margin-bottom:16px;padding:12px;background-color:var(--cinza);border-radius:8px;">
-          <select name="pizza_id[]" required style="width:100%;padding:12px;margin-bottom:8px;border:2px solid var(--branco);border-radius:8px;">
-            <option value="">Selecione a pizza</option>
-            {% for pizza in pizzas %}
-            <option value="{{ pizza.id }}">{{ pizza.nome }}</option>
-            {% endfor %}
-          </select>
-          <select name="tamanho[]" required style="width:100%;padding:12px;margin-bottom:8px;border:2px solid var(--branco);border-radius:8px;">
-            <option value="G">Grande - R$ 39,00</option>
-            <option value="M">Média - R$ 32,00</option>
-            <option value="P">Pequena - R$ 25,00</option>
-          </select>
-          <input type="number" name="quantidade[]" min="1" value="1" required style="width:100%;padding:12px;border:2px solid var(--branco);border-radius:8px;" placeholder="Quantidade">
-        </div>
-      </div>
-      
-      <button type="button" onclick="adicionarItem()" class="btn btn-secondary">+ Adicionar Item</button>
-      <button type="submit" class="btn">Registrar Pedido</button>
-    </form>
-  </div>
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Novo Pedido - Sabor &amp; Nordestino</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Playfair+Display:ital,wght@0,600;0,700;1,600&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'pizzaria/gerenciar.css' %}?v=7">
+    <link rel="stylesheet" href="{% static 'pizzaria/painel_sidebar.css' %}?v=3">
+</head>
+<body class="admin-body">
+    <div class="admin-layout">
+        {% include 'pizzaria/partials/painel_sidebar.html' with active_page='pedidos' %}
 
-  <script>
-    function adicionarItem() {
-      const container = document.getElementById('itens-container');
-      const novoItem = container.children[0].cloneNode(true);
-      novoItem.querySelectorAll('input').forEach(input => input.value = '1');
-      novoItem.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
-      container.appendChild(novoItem);
-    }
-  </script>
-{% endblock %}
+        <main class="admin-content">
+            <header class="admin-header">
+                <div>
+                    <h1>Registrar Novo Pedido</h1>
+                    <p>Registre pedidos recebidos pelo WhatsApp.</p>
+                </div>
+                <div><a href="{% url 'painel_pedidos' %}" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Voltar</a></div>
+            </header>
+
+            <div class="form-container-card">
+                <form method="post" class="admin-form" id="formPedido">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="cliente">Nome do Cliente:</label>
+                        <input type="text" id="cliente" name="cliente" class="form-control" placeholder="Nome completo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="telefone">Telefone:</label>
+                        <input type="tel" id="telefone" name="telefone" class="form-control" placeholder="(00) 00000-0000" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="endereco">Endereço (opcional):</label>
+                        <textarea id="endereco" name="endereco" class="form-control" rows="3" placeholder="Rua, número, bairro..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="observacao">Observação (opcional):</label>
+                        <textarea id="observacao" name="observacao" class="form-control" rows="2" placeholder="Observações do pedido..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Itens do Pedido:</label>
+                        <div id="itens-container">
+                            <div class="item-builder-row">
+                                <select name="pizza_id[]" class="form-control" required>
+                                    <option value="">Selecione a pizza</option>
+                                    {% for pizza in pizzas %}<option value="{{ pizza.id }}">{{ pizza.nome }}</option>{% endfor %}
+                                </select>
+                                <select name="tamanho[]" class="form-control" required>
+                                    <option value="G">Grande - R$ 39,00</option>
+                                    <option value="M">Média - R$ 32,00</option>
+                                    <option value="P">Pequena - R$ 25,00</option>
+                                </select>
+                                <input type="number" name="quantidade[]" class="form-control" value="1" min="1" required>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" onclick="adicionarItem()" class="btn btn-secondary btn-block mb-3"><i class="fa-solid fa-plus"></i> Adicionar Item</button>
+                    <button type="submit" class="btn btn-primary btn-block">Registrar Pedido</button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function adicionarItem() {
+            const container = document.getElementById('itens-container');
+            const novoItem = container.firstElementChild.cloneNode(true);
+            novoItem.querySelectorAll('input').forEach(input => input.value = '1');
+            novoItem.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+            container.appendChild(novoItem);
+        }
+    </script>
+</body>
+</html>

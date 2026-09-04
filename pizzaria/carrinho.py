@@ -63,6 +63,33 @@ class Carrinho:
         if item_id in self.carrinho:
             del self.carrinho[item_id]
             self.salvar()
+
+    def remover_adicional(self, item_id, adicional):
+        item = self.carrinho.get(item_id)
+        adicionais_validos = {'borda_chocolate', 'catupiry_cima', 'catupiry_borda'}
+
+        if not item or item.get('tipo', 'pizza') == 'bebida' or adicional not in adicionais_validos:
+            return
+
+        tamanho = item.get('tamanho', 'G')
+        precos = {
+            'borda_chocolate': {'P': Decimal('4.00'), 'M': Decimal('5.00'), 'G': Decimal('6.00')},
+            'catupiry_borda': {'P': Decimal('8.00'), 'M': Decimal('10.00'), 'G': Decimal('12.00')},
+        }
+        valor = precos.get(adicional, {}).get(tamanho, Decimal('0.00'))
+
+        if adicional == 'catupiry_cima':
+            valor = {
+                'inteira': {'P': Decimal('10.00'), 'M': Decimal('12.00'), 'G': Decimal('14.00')},
+                'metade': {'P': Decimal('5.00'), 'M': Decimal('6.00'), 'G': Decimal('7.00')},
+            }.get(item.get('catupiry_cima'), {}).get(tamanho, Decimal('0.00'))
+
+        item['preco'] = str(max(Decimal('0.00'), Decimal(item.get('preco', '0.00')) - valor))
+        if adicional == 'catupiry_cima':
+            item['catupiry_cima'] = 'nao'
+        else:
+            item[adicional] = False
+        self.salvar()
     
     def atualizar_quantidade(self, item_id, quantidade):
         if item_id in self.carrinho:
