@@ -435,8 +435,14 @@
 }
 
 /* Utilitários de Margem */
+.mb-2 {
+  margin-bottom: 10px;
+}
 .mb-4 {
   margin-bottom: 25px;
+}
+.mt-2 {
+  margin-top: 10px;
 }
 .mt-3 {
   margin-top: 15px;

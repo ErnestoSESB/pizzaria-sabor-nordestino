@@ -1,8 +1,7 @@
 from django.db import models
+from .utils import SanitizedModelMixin
 
-
-class TaxaEntrega(models.Model):
-	"""Armazena as taxas de entrega para diferentes localidades"""
+class TaxaEntrega(SanitizedModelMixin, models.Model):
 	nome = models.CharField(max_length=100, unique=True, help_text='Nome da localidade')
 	taxa = models.DecimalField(max_digits=6, decimal_places=2, default=0, help_text='Valor da taxa de entrega')
 	ativo = models.BooleanField(default=True, help_text='Se a entrega está disponível para este local')
@@ -16,7 +15,7 @@ class TaxaEntrega(models.Model):
 		ordering = ['nome']
 
 
-class Pizza(models.Model):
+class Pizza(SanitizedModelMixin, models.Model):
 	CATEGORIA_SALGADA = 'salgada'
 	CATEGORIA_DOCE = 'doce'
 	CATEGORIA_CHOICES = [
@@ -41,7 +40,7 @@ class Pizza(models.Model):
 		return precos_base.get(tamanho, 0)
 
 
-class Bebida(models.Model):
+class Bebida(SanitizedModelMixin, models.Model):
 	nome = models.CharField(max_length=100)
 	descricao = models.CharField(max_length=200, blank=True)
 	imagem = models.ImageField(upload_to='bebidas/', blank=True, null=True)
@@ -58,7 +57,7 @@ class Bebida(models.Model):
 		ordering = ['nome']
 
 
-class Pedido(models.Model):
+class Pedido(SanitizedModelMixin, models.Model):
 	STATUS_CHOICES = [
 		("Novo", "Novo"),
 		("Em andamento", "Em andamento"),
@@ -86,7 +85,7 @@ class Pedido(models.Model):
 	def __str__(self):
 		return f"Pedido #{self.id} - {self.cliente}"
 
-class ItemPedido(models.Model):
+class ItemPedido(SanitizedModelMixin, models.Model):
 	TIPO_CHOICES = [
 		('pizza', 'Pizza'),
 		('bebida', 'Bebida'),

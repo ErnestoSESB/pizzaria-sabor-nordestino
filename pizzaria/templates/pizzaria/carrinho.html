@@ -109,13 +109,6 @@
         {% endif %}
 
         {% if itens %}
-        <a
-          href="{% url 'escolher_sabores' %}"
-          class="btn btn-secondary btn-block mb-4"
-        >
-          <i class="fa-solid fa-arrow-left"></i> Adicionar Mais Pizzas
-        </a>
-
         {% for item in itens %}
         <div class="checkout-card cart-item">
           <div class="item-header">
@@ -435,6 +428,13 @@
               />
             </div>
 
+            <a
+              href="{% url 'escolher_sabores' %}"
+              class="btn btn-secondary btn-block mb-2"
+            >
+              <i class="fa-solid fa-arrow-left"></i> Adicionar Mais Pizzas
+            </a>
+
             <button
               type="submit"
               class="btn btn-primary btn-block"
@@ -445,7 +445,7 @@
 
             <button
               type="submit"
-              class="btn btn-whatsapp btn-block mt-4"
+              class="btn btn-whatsapp btn-block mt-2"
               id="btn-finalizar"
             >
               <i class="fa-solid fa-check"></i> Enviar Pedido pelo WhatsApp
@@ -511,9 +511,9 @@
           <div class="footer-links">
             <h4>Navegação</h4>
             <ul>
-              <li><a href="#">Início</a></li>
-              <li><a href="#">Cardápio</a></li>
-              <li><a href="#">Contato</a></li>
+              <li><a href="{% url 'index' %}">Início</a></li>
+              <li><a href="{% url 'cardapio' %}">Cardápio</a></li>
+              <li><a href="{% url 'contato' %}">Contato</a></li>
               <li><a href="{% url 'painel' %}">Painel Admin</a></li>
             </ul>
           </div>
@@ -589,7 +589,7 @@
         });
 
       document
-        .querySelectorAll('form[action*="carrinho_remover"]')
+        .querySelectorAll('form[action*="/carrinho/remover/"]')
         .forEach(function (form) {
           form.addEventListener("submit", function () {
             sessionStorage.setItem(

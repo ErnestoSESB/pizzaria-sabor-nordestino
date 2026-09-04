@@ -377,6 +377,37 @@
     accent-color: var(--primary);
 }
 
+.bebida-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.bebida-item .bebida-select {
+    flex: 1;
+}
+
+.bebida-remove-btn {
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--text-muted);
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.bebida-remove-btn:hover {
+    border-color: rgba(229, 57, 53, 0.4);
+    color: #ff7676;
+}
+
+.mt-2 {
+    margin-top: 10px;
+}
+
 .builder-actions {
     display: flex;
     gap: 16px;

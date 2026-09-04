@@ -165,7 +165,7 @@ class PainelBebidasTests(TestCase):
 				'num_sabores': '1',
 				'sabor_1': str(pizza.id),
 				'quer_bebida': 'sim',
-				'bebida_id': str(bebida.id),
+				'bebida_id[]': [str(bebida.id)],
 				'catupiry_cima': 'nao',
 			},
 			follow=True,
@@ -174,6 +174,35 @@ class PainelBebidasTests(TestCase):
 		carrinho = self.client.session.get('carrinho', {})
 		self.assertGreater(len(carrinho), 1)
 		self.assertTrue(any(item.get('bebida_id') == str(bebida.id) for item in carrinho.values()))
+
+	def test_pedido_finalizado_inclui_multiplas_bebidas(self):
+		pizza = Pizza.objects.create(
+			nome='Marguerita',
+			ingredientes='Mussarela e tomate',
+			disponivel=True,
+			especial=False,
+		)
+		coca = Bebida.objects.create(nome='Coca-Cola', preco='8.50', disponivel=True)
+		guarana = Bebida.objects.create(nome='Guaraná', preco='7.00', disponivel=True)
+
+		response = self.client.post(
+			reverse('carrinho_adicionar_pizza'),
+			data={
+				'acao': 'pedido',
+				'tamanho': 'G',
+				'num_sabores': '1',
+				'sabor_1': str(pizza.id),
+				'quer_bebida': 'sim',
+				'bebida_id[]': [str(coca.id), str(guarana.id)],
+				'catupiry_cima': 'nao',
+			},
+			follow=True,
+		)
+
+		self.assertEqual(response.status_code, 200)
+		carrinho = self.client.session.get('carrinho', {})
+		bebida_ids_no_carrinho = {item.get('bebida_id') for item in carrinho.values() if item.get('bebida_id')}
+		self.assertEqual(bebida_ids_no_carrinho, {str(coca.id), str(guarana.id)})
 
 	def test_painel_bebidas_exige_login(self):
 		response = self.client.get(reverse('painel_bebidas'))

@@ -56,11 +56,13 @@ def carrinho_adicionar_pizza(request):
 	if request.method == 'POST':
 		carrinho = Carrinho(request)
 		quer_bebida = request.POST.get('quer_bebida')
-		bebida_id = request.POST.get('bebida_id')
+		bebida_ids = request.POST.getlist('bebida_id[]')
 
-		if quer_bebida == 'sim' and bebida_id:
-			bebida = get_object_or_404(Bebida, id=bebida_id)
-			carrinho.adicionar(bebida=bebida, quantidade=1, preco=float(bebida.preco))
+		if quer_bebida == 'sim':
+			for bebida_id in bebida_ids:
+				if bebida_id:
+					bebida = get_object_or_404(Bebida, id=bebida_id)
+					carrinho.adicionar(bebida=bebida, quantidade=1, preco=float(bebida.preco))
 
 		# pizza flow
 		tamanho = request.POST.get('tamanho')

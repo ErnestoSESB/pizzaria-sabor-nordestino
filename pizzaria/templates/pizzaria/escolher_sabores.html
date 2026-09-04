@@ -173,12 +173,17 @@
                     </div>
 
                     <div id="bebida-container" style="display: none; margin-top: 18px;">
-                        <select name="bebida_id" id="bebida_id">
-                            <option value="">Selecione a bebida...</option>
-                            {% for bebida in bebidas %}
-                                <option value="{{ bebida.id }}">{{ bebida.nome }} - R$ {{ bebida.preco }}</option>
-                            {% endfor %}
-                        </select>
+                        <div id="bebidas-container">
+                            <div class="bebida-item">
+                                <select name="bebida_id[]" class="bebida-select" onchange="calcularPreco()">
+                                    <option value="">Selecione a bebida...</option>
+                                    {% for bebida in bebidas %}
+                                        <option value="{{ bebida.id }}">{{ bebida.nome }} - R$ {{ bebida.preco }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-secondary btn-sm mt-2" onclick="adicionarBebida()">+ Adicionar nova bebida</button>
                     </div>
                 </section>
 
@@ -287,29 +292,61 @@
         function toggleBebidaOptions() {
             const valor = document.querySelector('input[name="quer_bebida"]:checked')?.value || 'nao';
             const bebidaContainer = document.getElementById('bebida-container');
-            const bebidaSelect = document.getElementById('bebida_id');
 
             if (valor === 'sim') {
                 bebidaContainer.style.display = 'block';
-                bebidaSelect.required = true;
             } else {
                 bebidaContainer.style.display = 'none';
-                bebidaSelect.required = false;
-                bebidaSelect.value = '';
+                resetarBebidas();
             }
 
             calcularPreco();
         }
 
+        function resetarBebidas() {
+            const container = document.getElementById('bebidas-container');
+            const itens = container.querySelectorAll('.bebida-item');
+            itens.forEach((item, index) => {
+                if (index === 0) {
+                    item.querySelector('select').value = '';
+                } else {
+                    item.remove();
+                }
+            });
+        }
+
+        function adicionarBebida() {
+            const container = document.getElementById('bebidas-container');
+            const primeiro = container.querySelector('.bebida-item');
+            const novoItem = primeiro.cloneNode(true);
+            novoItem.querySelector('select').value = '';
+
+            if (!novoItem.querySelector('.bebida-remove-btn')) {
+                const removerBtn = document.createElement('button');
+                removerBtn.type = 'button';
+                removerBtn.className = 'bebida-remove-btn';
+                removerBtn.textContent = 'Remover';
+                removerBtn.onclick = function () {
+                    novoItem.remove();
+                    calcularPreco();
+                };
+                novoItem.appendChild(removerBtn);
+            }
+
+            container.appendChild(novoItem);
+        }
+
         function validarPedidoAntesDeEnviar(event) {
             const querBebida = document.querySelector('input[name="quer_bebida"]:checked')?.value || 'nao';
-            const bebidaSelect = document.getElementById('bebida_id');
 
-            if (querBebida === 'sim' && (!bebidaSelect.value)) {
-                event.preventDefault();
-                bebidaSelect.focus();
-                bebidaSelect.reportValidity();
-                return false;
+            if (querBebida === 'sim') {
+                const primeiraBebida = document.querySelector('.bebida-select');
+                if (!primeiraBebida.value) {
+                    event.preventDefault();
+                    primeiraBebida.focus();
+                    primeiraBebida.reportValidity();
+                    return false;
+                }
             }
 
             const tamanho = document.getElementById('tamanho');
@@ -337,10 +374,6 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             toggleBebidaOptions();
-            const bebidaSelect = document.getElementById('bebida_id');
-            if (bebidaSelect) {
-                bebidaSelect.addEventListener('change', calcularPreco);
-            }
         });
 
         function mostrarSabores(num) {
@@ -436,27 +469,34 @@
                 preco += catupiry[tamanho];
             }
 
-            let bebidaNome = '';
-            let bebidaPreco = 0;
+            let bebidasNomes = [];
+            let bebidaPrecoTotal = 0;
             const querBebida = document.querySelector('input[name="quer_bebida"]:checked')?.value || 'nao';
-            const bebidaSelect = document.getElementById('bebida_id');
 
-            if (querBebida === 'sim' && bebidaSelect && bebidaSelect.value) {
-                const bebidaOption = bebidaSelect.options[bebidaSelect.selectedIndex];
-                const textoBebida = bebidaOption ? bebidaOption.textContent.trim() : '';
-                const matchPreco = textoBebida.match(/R\$\s*([\d.,]+)/);
+            if (querBebida === 'sim') {
+                document.querySelectorAll('.bebida-select').forEach(select => {
+                    if (!select.value) return;
+                    const option = select.options[select.selectedIndex];
+                    const texto = option ? option.textContent.trim() : '';
+                    const matchPreco = texto.match(/R\$\s*([\d.,]+)/);
+                    const nome = texto.replace(/\s*-\s*R\$\s*[\d,\.]+\s*$/, '').trim();
 
-                bebidaNome = textoBebida.replace(/\s*-\s*R\$\s*[\d,\.]+\s*$/, '').trim();
-
-                if (matchPreco) {
-                    let valor = matchPreco[1];
-                    if (valor.includes(',') && valor.includes('.')) {
-                        valor = valor.replace(/\./g, '').replace(',', '.');
-                    } else if (valor.includes(',')) {
-                        valor = valor.replace(',', '.');
+                    let valor = 0;
+                    if (matchPreco) {
+                        let bruto = matchPreco[1];
+                        if (bruto.includes(',') && bruto.includes('.')) {
+                            bruto = bruto.replace(/\./g, '').replace(',', '.');
+                        } else if (bruto.includes(',')) {
+                            bruto = bruto.replace(',', '.');
+                        }
+                        valor = Number.parseFloat(bruto) || 0;
                     }
-                    bebidaPreco = Number.parseFloat(valor) || 0;
-                }
+
+                    if (nome) {
+                        bebidasNomes.push(nome);
+                        bebidaPrecoTotal += valor;
+                    }
+                });
             }
 
             const tamanhoNome = {'P': 'Pequena', 'M': 'Média', 'G': 'Grande'};
@@ -479,11 +519,11 @@
                 linhasResumo.push(`• ${labelCatupiry}`);
             }
 
-            if (bebidaNome) {
-                linhasResumo.push(`• ${bebidaNome}`);
+            if (bebidasNomes.length > 0) {
+                bebidasNomes.forEach(nome => linhasResumo.push(`• ${nome}`));
             }
 
-            const total = preco + bebidaPreco;
+            const total = preco + bebidaPrecoTotal;
             const texto = linhasResumo.length > 0 ? linhasResumo.join('<br>') : 'Selecione o tamanho e os sabores.';
 
             if (resumoCard) resumoCard.style.display = 'block';
