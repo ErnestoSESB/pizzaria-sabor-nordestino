@@ -4,7 +4,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 from django.utils import timezone
+from django.db.models import Case, IntegerField, Value, When
 from datetime import datetime, timedelta
+from html import unescape
 from .models import Pizza, Pedido, ItemPedido, Bebida
 from .carrinho import Carrinho
 from .calculadora_preco import calcular_preco_pizza
@@ -61,12 +63,22 @@ def carrinho_adicionar_pizza(request):
 		if quer_bebida == 'sim':
 			for bebida_id in bebida_ids:
 				if bebida_id:
-					bebida = get_object_or_404(Bebida, id=bebida_id)
+					bebida = get_object_or_404(Bebida, id=bebida_id, disponivel=True)
 					carrinho.adicionar(bebida=bebida, quantidade=1, preco=float(bebida.preco))
 
 		# pizza flow
 		tamanho = request.POST.get('tamanho')
-		num_sabores = int(request.POST.get('num_sabores', 1))
+		if tamanho not in {'P', 'M', 'G'}:
+			messages.error(request, 'Selecione um tamanho válido.')
+			return redirect('escolher_sabores')
+		try:
+			num_sabores = int(request.POST.get('num_sabores', 1))
+		except (TypeError, ValueError):
+			messages.error(request, 'Selecione entre 1 e 3 sabores.')
+			return redirect('escolher_sabores')
+		if num_sabores not in {1, 2, 3}:
+			messages.error(request, 'Selecione entre 1 e 3 sabores.')
+			return redirect('escolher_sabores')
 		borda_chocolate = request.POST.get('borda_chocolate') == 'on'
 		catupiry_cima = request.POST.get('catupiry_cima', 'nao')
 		catupiry_borda = request.POST.get('catupiry_borda') == 'on'
@@ -79,11 +91,14 @@ def carrinho_adicionar_pizza(request):
 		for i in range(1, num_sabores + 1):
 			sabor_id = request.POST.get(f'sabor_{i}')
 			if sabor_id:
-				pizza = get_object_or_404(Pizza, id=sabor_id)
+				pizza = get_object_or_404(Pizza, id=sabor_id, disponivel=True)
 				sabores_ids.append(int(sabor_id))
 				sabores_nomes.append(pizza.nome)
 				if pizza.especial:
 					sabores_especiais_count += 1
+		if len(sabores_ids) != num_sabores:
+			messages.error(request, 'Selecione todos os sabores da pizza.')
+			return redirect('escolher_sabores')
 		
 		# Calcular preço
 		preco_final = calcular_preco_pizza(
@@ -147,7 +162,7 @@ def carrinho_detalhes(request):
 				item.sabores_nomes = []
 				if item.sabores:
 					try:
-						item.sabores_nomes = json.loads(item.sabores).get('nomes', [])
+						item.sabores_nomes = json.loads(unescape(item.sabores)).get('nomes', [])
 					except (TypeError, ValueError):
 						pass
 	
@@ -189,7 +204,7 @@ def carrinho_detalhes(request):
 		}
 		if item.get('sabores'):
 			try:
-				item_data['sabores_data'] = json.loads(item['sabores'])
+				item_data['sabores_data'] = json.loads(unescape(item['sabores']))
 			except:
 				pass
 		itens_processados.append(item_data)
@@ -499,7 +514,7 @@ def painel_pedidos(request):
 			}
 			if item.sabores:
 				try:
-					sabores_data = json.loads(item.sabores)
+					sabores_data = json.loads(unescape(item.sabores))
 					nomes = sabores_data.get('nomes', [])
 					item_data['sabores_lista'] = ', '.join(nomes)
 				except:
@@ -531,7 +546,7 @@ def historico_pedidos(request):
 			item.sabores_nomes = []
 			if item.sabores:
 				try:
-					item.sabores_nomes = json.loads(item.sabores).get('nomes', [])
+					item.sabores_nomes = json.loads(unescape(item.sabores)).get('nomes', [])
 				except (TypeError, ValueError):
 					pass
 	return render(request, 'pizzaria/historico_pedidos.html', {'pedidos': pedidos, 'data_filtro': data_filtro, 'active_page': 'historico'})
@@ -615,21 +630,31 @@ def pedido_imprimir(request, pedido_id):
 	
 	# Processar itens com sabores
 	itens_processados = []
-	for item in pedido.itens.all():
+	ordem_itens = Case(
+		When(item_tipo='pizza', then=Value(0)),
+		When(item_tipo='bebida', then=Value(1)),
+		default=Value(2),
+		output_field=IntegerField(),
+	)
+	for item in pedido.itens.order_by(ordem_itens, 'id'):
 		item_data = {
 			'item': item,
 			'sabores_data': None
 		}
 		if item.sabores:
 			try:
-				item_data['sabores_data'] = json.loads(item.sabores)
+				item_data['sabores_data'] = json.loads(unescape(item.sabores))
 			except:
 				pass
 		itens_processados.append(item_data)
+	pizzas_processadas = [item for item in itens_processados if item['item'].item_tipo == 'pizza']
+	bebidas_processadas = [item for item in itens_processados if item['item'].item_tipo == 'bebida']
 	
 	return render(request, 'pizzaria/pedido_imprimir.html', {
 		'pedido': pedido,
-		'itens_processados': itens_processados
+		'itens_processados': itens_processados,
+		'pizzas_processadas': pizzas_processadas,
+		'bebidas_processadas': bebidas_processadas,
 	})
 
 def login_view(request):

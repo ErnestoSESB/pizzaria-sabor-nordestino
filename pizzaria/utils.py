@@ -21,6 +21,8 @@ class SanitizedModelMixin:
             super_clean()
         for field in self._meta.get_fields():
             if getattr(field, 'get_internal_type', lambda: None)() in ('CharField', 'TextField'):
+                if field.name == 'sabores':
+                    continue
                 val = getattr(self, field.name, None)
                 if val is not None:
                     max_len = getattr(field, 'max_length', None)
@@ -33,7 +35,9 @@ class SanitizedModelMixin:
         except ValidationError as e:
             logger.warning("Model full_clean failed on %s: %s — aplicando fallback", type(self).__name__, e)
             for field in self._meta.get_fields():
-                if getattr(field, 'get_internal_type', None) in ('CharField', 'TextField'):
+                if getattr(field, 'get_internal_type', lambda: None)() in ('CharField', 'TextField'):
+                    if field.name == 'sabores':
+                        continue
                     val = getattr(self, field.name, None)
                     if val is not None:
                         setattr(self, field.name, sanitize_text(val, max_length=getattr(field, 'max_length', None)))

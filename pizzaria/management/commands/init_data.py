@@ -3,7 +3,7 @@ Django management command para popular dados iniciais
 """
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
-from pizzaria.models import Pizza, TaxaEntrega
+from pizzaria.models import Bebida, Pizza, TaxaEntrega
 
 User = get_user_model()
 
@@ -84,5 +84,20 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(f'✅ Pizza criada: {emoji} {pizza_data["nome"]}'))
         else:
             self.stdout.write(f'ℹ️ Já existem {Pizza.objects.count()} pizzas cadastradas')
+
+        bebidas = [
+            {'nome': 'Coca-Cola Lata', 'descricao': 'Refrigerante 350 ml', 'preco': 6.00, 'disponivel': True},
+            {'nome': 'Guarana Antarctica Lata', 'descricao': 'Refrigerante 350 ml', 'preco': 6.00, 'disponivel': True},
+            {'nome': 'Fanta Laranja Lata', 'descricao': 'Refrigerante 350 ml', 'preco': 6.00, 'disponivel': True},
+            {'nome': 'Agua Mineral', 'descricao': 'Agua mineral 500 ml', 'preco': 3.00, 'disponivel': True},
+        ]
+
+        for bebida_data in bebidas:
+            bebida, created = Bebida.objects.get_or_create(
+                nome=bebida_data['nome'],
+                defaults=bebida_data,
+            )
+            if created:
+                self.stdout.write(self.style.SUCCESS(f'✅ Bebida criada: {bebida.nome}'))
         
         self.stdout.write(self.style.SUCCESS('\n✨ Configuração concluída!'))

@@ -1,4 +1,5 @@
 from decimal import Decimal
+import json
 
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -6,7 +7,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from .calculadora_preco import calcular_preco_pizza
-from .models import Bebida, Pedido, Pizza, TaxaEntrega
+from .models import Bebida, ItemPedido, Pedido, Pizza, TaxaEntrega
 
 
 class CalculadoraPrecoTests(TestCase):
@@ -203,6 +204,30 @@ class PainelBebidasTests(TestCase):
 		carrinho = self.client.session.get('carrinho', {})
 		bebida_ids_no_carrinho = {item.get('bebida_id') for item in carrinho.values() if item.get('bebida_id')}
 		self.assertEqual(bebida_ids_no_carrinho, {str(coca.id), str(guarana.id)})
+
+	def test_impressao_exibe_tres_sabores(self):
+		pizzas = [
+			Pizza.objects.create(nome=nome, ingredientes='Ingredientes', disponivel=True)
+			for nome in ('Sabor Um', 'Sabor Dois', 'Sabor Tres')
+		]
+		pedido = Pedido.objects.create(cliente='Cliente Sabores', total='39.00')
+		ItemPedido.objects.create(
+			pedido=pedido,
+			pizza=pizzas[0],
+			preco_unitario='39.00',
+			sabores=json.dumps({
+				'num_sabores': 3,
+				'ids': [pizza.id for pizza in pizzas],
+				'nomes': [pizza.nome for pizza in pizzas],
+			}),
+		)
+		self.client.login(username='admin', password='123456')
+
+		response = self.client.get(reverse('pedido_imprimir', args=[pedido.id]))
+
+		self.assertContains(response, 'Sabor Um')
+		self.assertContains(response, 'Sabor Dois')
+		self.assertContains(response, 'Sabor Tres')
 
 	def test_painel_bebidas_exige_login(self):
 		response = self.client.get(reverse('painel_bebidas'))
