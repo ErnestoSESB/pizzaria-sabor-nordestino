@@ -23,10 +23,10 @@
                 <span class="logo-text">Sabor <span class="text-primary"></span> Nordestino</span>
             </div>
             <nav class="nav-links">
-                <a href="#" class="active">Início</a>
+                <a href="{% url 'index' %}" class="active">Início</a>
                 <a href="{% url 'cardapio' %}">Cardápio</a>
                 <a href="{% url 'contato' %}">Contato</a>
-                <a href="{% url 'contato' %}">Pedido</a>
+                <a href="{% url 'carrinho_detalhes' %}">Pedido</a>
             </nav>
             <div class="nav-actions">
                 <a href="{% url 'carrinho_detalhes' %}" class="cart-btn" aria-label="Ver pedido"><i class="fa-solid fa-bag-shopping"></i></a>
