@@ -9,8 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Playfair+Display:ital,wght@0,600;0,700;1,600&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'pizzaria/gerenciar.css' %}?v=7">
-    <link rel="stylesheet" href="{% static 'pizzaria/painel_sidebar.css' %}?v=3">
+    <link rel="stylesheet" href="{% static 'pizzaria/gerenciar.css' %}?v=8">
+    <link rel="stylesheet" href="{% static 'pizzaria/painel_sidebar.css' %}?v=4">
 </head>
 <body class="admin-body">
     <div class="admin-layout">
@@ -48,16 +48,37 @@
                         <label>Itens do Pedido:</label>
                         <div id="itens-container">
                             <div class="item-builder-row">
-                                <select name="pizza_id[]" class="form-control" required>
-                                    <option value="">Selecione a pizza</option>
-                                    {% for pizza in pizzas %}<option value="{{ pizza.id }}">{{ pizza.nome }}</option>{% endfor %}
-                                </select>
-                                <select name="tamanho[]" class="form-control" required>
-                                    <option value="G">Grande - R$ 39,00</option>
-                                    <option value="M">Média - R$ 32,00</option>
-                                    <option value="P">Pequena - R$ 25,00</option>
-                                </select>
-                                <input type="number" name="quantidade[]" class="form-control" value="1" min="1" required>
+                                <div class="item-main-fields">
+                                    <select name="sabor_1[]" class="form-control" required>
+                                        <option value="">1o sabor (obrigatorio)</option>
+                                        {% for pizza in pizzas %}<option value="{{ pizza.id }}">{{ pizza.nome }}</option>{% endfor %}
+                                    </select>
+                                    <select name="num_sabores[]" class="form-control js-num-sabores" onchange="atualizarCamposSabores(this)" required>
+                                        <option value="1" selected>1 sabor</option>
+                                        <option value="2">2 sabores</option>
+                                        <option value="3">3 sabores</option>
+                                    </select>
+                                    <select name="tamanho[]" class="form-control" required>
+                                        <option value="G">Grande - R$ 39,00</option>
+                                        <option value="M">Media - R$ 32,00</option>
+                                        <option value="P">Pequena - R$ 25,00</option>
+                                    </select>
+                                    <input type="number" name="quantidade[]" class="form-control" value="1" min="1" required>
+                                </div>
+                                <div class="extra-sabores">
+                                    <div class="sabor-extra-wrapper sabor-2-wrapper hidden">
+                                        <select name="sabor_2[]" class="form-control" disabled>
+                                            <option value="">2o sabor</option>
+                                            {% for pizza in pizzas %}<option value="{{ pizza.id }}">{{ pizza.nome }}</option>{% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="sabor-extra-wrapper sabor-3-wrapper hidden">
+                                        <select name="sabor_3[]" class="form-control" disabled>
+                                            <option value="">3o sabor</option>
+                                            {% for pizza in pizzas %}<option value="{{ pizza.id }}">{{ pizza.nome }}</option>{% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -69,13 +90,61 @@
     </div>
 
     <script>
+        function atualizarCamposSabores(selectEl) {
+            const item = selectEl.closest('.item-builder-row');
+            const quantidadeSabores = parseInt(selectEl.value || '1', 10);
+
+            const sabor2Wrapper = item.querySelector('.sabor-2-wrapper');
+            const sabor3Wrapper = item.querySelector('.sabor-3-wrapper');
+            const sabor2Select = item.querySelector('[name="sabor_2[]"]');
+            const sabor3Select = item.querySelector('[name="sabor_3[]"]');
+
+            const usarSabor2 = quantidadeSabores >= 2;
+            const usarSabor3 = quantidadeSabores >= 3;
+
+            sabor2Wrapper.classList.toggle('hidden', !usarSabor2);
+            sabor2Select.disabled = !usarSabor2;
+            sabor2Select.required = usarSabor2;
+            if (!usarSabor2) {
+                sabor2Select.selectedIndex = 0;
+            }
+
+            sabor3Wrapper.classList.toggle('hidden', !usarSabor3);
+            sabor3Select.disabled = !usarSabor3;
+            sabor3Select.required = usarSabor3;
+            if (!usarSabor3) {
+                sabor3Select.selectedIndex = 0;
+            }
+        }
+
+        function configurarItem(item) {
+            item.querySelectorAll('input[type="number"]').forEach(input => input.value = '1');
+            item.querySelectorAll('select').forEach(select => {
+                if (select.name === 'num_sabores[]') {
+                    select.value = '1';
+                } else if (select.name === 'tamanho[]') {
+                    select.value = 'G';
+                } else {
+                    select.selectedIndex = 0;
+                }
+            });
+
+            const seletorSabores = item.querySelector('.js-num-sabores');
+            if (seletorSabores) {
+                atualizarCamposSabores(seletorSabores);
+            }
+        }
+
         function adicionarItem() {
             const container = document.getElementById('itens-container');
             const novoItem = container.firstElementChild.cloneNode(true);
-            novoItem.querySelectorAll('input').forEach(input => input.value = '1');
-            novoItem.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+            configurarItem(novoItem);
             container.appendChild(novoItem);
         }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('#itens-container .item-builder-row').forEach(configurarItem);
+        });
     </script>
 </body>
 </html>

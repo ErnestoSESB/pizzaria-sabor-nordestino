@@ -612,25 +612,85 @@ def pedido_adicionar(request):
 		)
 		
 		# Adicionar itens ao pedido
-		pizzas_ids = request.POST.getlist('pizza_id[]')
+		sabores_1_ids = request.POST.getlist('sabor_1[]')
+		# Compatibilidade com versoes antigas do formulario
+		if not sabores_1_ids:
+			sabores_1_ids = request.POST.getlist('pizza_id[]')
+		numeros_sabores = request.POST.getlist('num_sabores[]')
+		sabores_2_ids = request.POST.getlist('sabor_2[]')
+		sabores_3_ids = request.POST.getlist('sabor_3[]')
 		quantidades = request.POST.getlist('quantidade[]')
 		tamanhos = request.POST.getlist('tamanho[]')
+
+		def valor_da_lista(lista, indice, padrao=''):
+			return lista[indice] if indice < len(lista) else padrao
 		
 		total = 0
-		for pizza_id, quantidade, tamanho in zip(pizzas_ids, quantidades, tamanhos):
-			if pizza_id and quantidade:
-				pizza = Pizza.objects.get(id=pizza_id)
-				if tamanho not in {'P', 'M', 'G'}:
-					tamanho = 'G'
-				preco_unitario = pizza.get_preco(tamanho)
-				ItemPedido.objects.create(
-					pedido=pedido,
-					pizza=pizza,
-					quantidade=int(quantidade),
-					preco_unitario=preco_unitario,
-					tamanho=tamanho
-				)
-				total += preco_unitario * int(quantidade)
+		for i, sabor_1_id in enumerate(sabores_1_ids):
+			if not sabor_1_id:
+				continue
+
+			quantidade_raw = valor_da_lista(quantidades, i, '1')
+			tamanho = valor_da_lista(tamanhos, i, 'G')
+			if tamanho not in {'P', 'M', 'G'}:
+				tamanho = 'G'
+
+			try:
+				quantidade = max(1, int(quantidade_raw))
+			except ValueError:
+				quantidade = 1
+
+			try:
+				num_sabores = int(valor_da_lista(numeros_sabores, i, '1'))
+			except ValueError:
+				num_sabores = 1
+			num_sabores = max(1, min(3, num_sabores))
+
+			sabores_escolhidos = []
+			pizza_1 = get_object_or_404(Pizza, id=sabor_1_id)
+			sabores_escolhidos.append(pizza_1)
+
+			sabor_2_id = valor_da_lista(sabores_2_ids, i)
+			if num_sabores >= 2 and sabor_2_id:
+				sabores_escolhidos.append(get_object_or_404(Pizza, id=sabor_2_id))
+
+			sabor_3_id = valor_da_lista(sabores_3_ids, i)
+			if num_sabores >= 3 and sabor_3_id:
+				sabores_escolhidos.append(get_object_or_404(Pizza, id=sabor_3_id))
+
+			total_sabores = len(sabores_escolhidos)
+			sabores_especiais_count = sum(1 for sabor in sabores_escolhidos if sabor.especial)
+
+			preco_unitario = calcular_preco_pizza(
+				tamanho=tamanho,
+				sabores_especiais_count=sabores_especiais_count,
+				total_sabores=total_sabores,
+				borda_chocolate=False,
+				catupiry_cima='nao',
+				catupiry_borda=False
+			)
+
+			sabores_json = None
+			if total_sabores > 1:
+				tamanhos = {'P': 'Pequena', 'M': 'Media', 'G': 'Grande'}
+				nomes = [sabor.nome for sabor in sabores_escolhidos]
+				sabores_json = json.dumps({
+					'num_sabores': total_sabores,
+					'ids': [sabor.id for sabor in sabores_escolhidos],
+					'nomes': nomes,
+					'descricao': f"{tamanhos[tamanho]} - {' / '.join(nomes)}"
+				})
+
+			ItemPedido.objects.create(
+				pedido=pedido,
+				item_tipo='pizza',
+				pizza=sabores_escolhidos[0],
+				quantidade=quantidade,
+				preco_unitario=preco_unitario,
+				tamanho=tamanho,
+				sabores=sabores_json
+			)
+			total += preco_unitario * quantidade
 		
 		pedido.total = total
 		pedido.save()

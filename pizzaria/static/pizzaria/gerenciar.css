@@ -473,8 +473,24 @@ body.admin-body {
 
 .item-builder-row {
     display: grid;
-    grid-template-columns: 2fr 1fr 80px;
+    grid-template-columns: 1fr;
     gap: 10px;
+}
+
+.item-main-fields {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 90px;
+    gap: 10px;
+}
+
+.extra-sabores {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.sabor-extra-wrapper.hidden {
+    display: none;
 }
 
 .print-version {
@@ -599,17 +615,40 @@ body.admin-body {
     .admin-sidebar {
         width: 100%;
         height: auto;
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 12px;
         padding: 15px;
     }
-    .sidebar-nav, .sidebar-footer {
-        display: none; /* Em produção, pode ser alternado por um botão mobile */
+
+    .sidebar-nav {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 4px;
     }
+
+    .sidebar-nav .nav-category {
+        display: none;
+    }
+
+    .sidebar-nav .nav-item {
+        display: inline-flex;
+        margin-right: 8px;
+        margin-bottom: 0;
+    }
+
+    .sidebar-footer {
+        display: block;
+        border-top: 0;
+        padding-top: 0;
+    }
+
     .sidebar-brand {
         margin-bottom: 0;
     }
+
     .admin-content {
         padding: 20px;
         overflow: visible;
@@ -626,6 +665,11 @@ body.admin-body {
         justify-content: flex-end;
     }
     .item-builder-row {
+        grid-template-columns: 1fr;
+    }
+
+    .item-main-fields,
+    .extra-sabores {
         grid-template-columns: 1fr;
     }
 }
