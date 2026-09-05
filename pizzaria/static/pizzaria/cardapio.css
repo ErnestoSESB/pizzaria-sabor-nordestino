@@ -328,3 +328,100 @@
     padding-bottom: 20px;
   }
 }
+
+/* ==========================================================================
+   Mobile com modo desktop ativo (Android)
+   ========================================================================== */
+@media (hover: none) and (pointer: coarse) and (min-width: 900px) {
+  .container {
+    max-width: 100%;
+    padding-left: 30px;
+    padding-right: 30px;
+  }
+
+  .navbar-solid {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 22px 0;
+    background: rgba(18, 18, 18, 0.78);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+  }
+
+  .navbar-solid .nav-container {
+    gap: 20px;
+  }
+
+  .menu-hero {
+    padding: 220px 0 56px 0;
+    text-align: left;
+  }
+
+  .menu-hero h1 {
+    font-size: 4.2rem;
+  }
+
+  .menu-hero p {
+    font-size: 1.22rem;
+    max-width: 90%;
+    margin: 0;
+  }
+
+  .menu-order-action {
+    width: min(360px, 100%);
+    min-height: 68px;
+    font-size: 1.2rem;
+    margin-top: 30px;
+  }
+
+  .menu-section {
+    padding: 56px 0 92px 0;
+  }
+
+  .menu-controls {
+    margin-bottom: 34px;
+  }
+
+  .filter-buttons {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 14px;
+  }
+
+  .btn-filter {
+    font-size: 1.06rem;
+    padding: 12px 20px;
+  }
+
+  .category-heading h2 {
+    font-size: 2.6rem;
+  }
+
+  .category-section {
+    margin-top: 64px;
+  }
+
+  .menu-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 26px;
+  }
+
+  .card-image {
+    height: 280px;
+  }
+
+  .card-content {
+    padding: 24px;
+  }
+
+  .card-content h3 {
+    font-size: 1.7rem;
+  }
+
+  .card-content p {
+    font-size: 1.06rem;
+    min-height: 0;
+  }
+}

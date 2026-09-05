@@ -603,3 +603,352 @@ footer {
     color: var(--text-muted);
     font-size: 0.8rem;
 }
+
+/* ==========================================================================
+   Responsividade
+   ========================================================================== */
+@media (max-width: 1024px) {
+    .hero h1 {
+        font-size: 3.6rem;
+    }
+
+    .cta h2 {
+        font-size: 2.8rem;
+    }
+
+    .features-grid,
+    .menu-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .footer-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 28px;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0 16px;
+    }
+
+    .navbar {
+        padding: 14px 0;
+    }
+
+    .logo {
+        font-size: 1.25rem;
+    }
+
+    .logo i {
+        font-size: 1.05rem;
+    }
+
+    .nav-links {
+        gap: 16px;
+    }
+
+    .nav-links a {
+        font-size: 0.88rem;
+    }
+
+    .cart-btn {
+        width: 38px;
+        height: 38px;
+    }
+
+    .cart-btn i {
+        font-size: 0.92rem;
+    }
+
+    .hero {
+        padding: 132px 0 72px 0;
+        min-height: auto;
+        background: linear-gradient(to bottom, rgba(18, 18, 18, 0.9) 0%, rgba(18, 18, 18, 0.65) 48%, rgba(18, 18, 18, 0.28) 100%), 
+                    url('https://images.unsplash.com/photo-1571997478779-2adcbbe9ab2f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+    }
+
+    .hero-content {
+        max-width: 100%;
+    }
+
+    .badge {
+        font-size: 0.78rem;
+        padding: 5px 12px;
+        margin-bottom: 16px;
+    }
+
+    .hero h1 {
+        font-size: clamp(2.5rem, 8.5vw, 3.4rem);
+        line-height: 1.05;
+        margin-bottom: 14px;
+    }
+
+    .hero p {
+        font-size: 0.98rem;
+        margin-bottom: 28px;
+        max-width: 100%;
+    }
+
+    .hero-buttons {
+        gap: 10px;
+        margin-bottom: 22px;
+    }
+
+    .btn {
+        padding: 10px 16px;
+        font-size: 0.88rem;
+        border-radius: 8px;
+    }
+
+    .hero-info {
+        flex-wrap: wrap;
+        row-gap: 8px;
+        column-gap: 16px;
+        font-size: 0.8rem;
+    }
+
+    .features {
+        padding: 42px 0;
+    }
+
+    .features-grid,
+    .menu-grid,
+    .info-grid,
+    .footer-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .feature-card {
+        padding: 22px;
+    }
+
+    .feature-card .icon-box {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+
+    .popular-menu {
+        padding: 56px 0;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 24px;
+    }
+
+    .section-header h2 {
+        font-size: 2rem;
+    }
+
+    .card-image {
+        height: 180px;
+    }
+
+    .card-content {
+        padding: 18px;
+    }
+
+    .card-content h3 {
+        font-size: 1.15rem;
+    }
+
+    .cta {
+        padding: 68px 0;
+    }
+
+    .cta-icon {
+        font-size: 2rem;
+    }
+
+    .cta h2 {
+        font-size: clamp(2rem, 8vw, 2.5rem);
+    }
+
+    .cta p {
+        font-size: 0.96rem;
+        margin-bottom: 22px;
+    }
+
+    .main-footer {
+        padding: 42px 0;
+    }
+
+    .footer-brand p {
+        max-width: 100%;
+    }
+
+    .bottom-footer .container {
+        flex-direction: column;
+        gap: 6px;
+        text-align: center;
+        font-size: 0.76rem;
+    }
+}
+
+@media (max-width: 560px) {
+    .navbar {
+        padding: 12px 0;
+    }
+
+    .nav-container {
+        flex-wrap: wrap;
+        row-gap: 10px;
+    }
+
+    .nav-links {
+        position: static;
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        transform: none;
+        flex-wrap: wrap;
+        gap: 10px 14px;
+    }
+
+    .nav-links a {
+        font-size: 0.82rem;
+    }
+
+    .logo-text {
+        font-size: 1rem;
+    }
+
+    .hero {
+        padding-top: 124px;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+        min-height: 44px;
+    }
+
+    .hero-info {
+        font-size: 0.76rem;
+    }
+
+    .feature-card,
+    .card-content {
+        padding: 16px;
+    }
+}
+
+@media (max-width: 420px) {
+    .container {
+        padding: 0 12px;
+    }
+
+    .logo {
+        gap: 8px;
+    }
+
+    .logo i {
+        font-size: 1rem;
+    }
+
+    .logo-text {
+        font-size: 0.95rem;
+    }
+
+    .cart-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .hero h1 {
+        font-size: clamp(2.2rem, 12vw, 2.8rem);
+    }
+
+    .hero p {
+        font-size: 0.92rem;
+    }
+
+    .badge {
+        font-size: 0.74rem;
+    }
+}
+
+/* ==========================================================================
+   Mobile em modo desktop (viewport largo com toque)
+   ========================================================================== */
+@media (hover: none) and (pointer: coarse) and (min-width: 900px) {
+    .navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 32px 0;
+        background: rgba(18, 18, 18, 0.72);
+        backdrop-filter: blur(8px);
+    }
+
+    .logo {
+        font-size: 2.15rem;
+        gap: 16px;
+    }
+
+    .logo i {
+        font-size: 1.7rem;
+    }
+
+    .nav-links {
+        position: static;
+        transform: none;
+        gap: 44px;
+    }
+
+    .nav-links a {
+        font-size: 1.35rem;
+    }
+
+    .cart-btn {
+        width: 62px;
+        height: 62px;
+    }
+
+    .cart-btn i {
+        font-size: 1.5rem;
+    }
+
+    .btn {
+        font-size: 1.4rem;
+        padding: 24px 42px;
+        min-height: 72px;
+        border-radius: 10px;
+    }
+
+    .hero-buttons {
+        gap: 22px;
+    }
+
+    .hero {
+        padding-top: 330px;
+    }
+
+    .hero h1 {
+        font-size: 5.8rem;
+    }
+
+    .hero p {
+        font-size: 1.3rem;
+        max-width: 95%;
+    }
+
+    .badge {
+        font-size: 1rem;
+        padding: 10px 18px;
+    }
+
+    .hero-info {
+        font-size: 1rem;
+        gap: 22px;
+    }
+}

@@ -4,9 +4,25 @@
 
 .login-hero {
     background: radial-gradient(circle at top, rgba(34, 34, 34, 1) 0%, var(--bg-main) 100%);
-    padding: 60px 0 40px 0;
+    padding: 118px 0 40px 0;
     text-align: center;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.login-hero .container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.login-hero .btn-back {
+    align-self: flex-start;
+    margin-bottom: 14px;
+}
+
+.login-hero .badge {
+    margin-bottom: 12px;
 }
 
 .login-hero h1 {
@@ -106,7 +122,17 @@
 .mt-2 { margin-top: 10px; }
 .mt-4 { margin-top: 30px; }
 
+@media (max-width: 720px) {
+    .login-hero {
+        padding-top: 166px;
+    }
+}
+
 @media (max-width: 576px) {
+    .login-hero {
+        padding-top: 174px;
+    }
+
     .login-card {
         padding: 30px 20px;
     }
