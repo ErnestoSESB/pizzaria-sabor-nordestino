@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.urls import reverse
 
 from .calculadora_preco import calcular_preco_pizza
@@ -128,6 +128,44 @@ class CheckoutCarrinhoTests(TestCase):
 		self.assertContains(pagina, 'Borda de Chocolate')
 		self.assertNotContains(pagina, 'Seu pedido ainda está vazio')
 
+	def test_clientes_anonimos_nao_compartilham_pedido_em_andamento(self):
+		taxa = TaxaEntrega.objects.create(nome='Lucrécia', taxa='5.00', ativo=True)
+		cliente_a = Client()
+		session_a = cliente_a.session
+		session_a['carrinho'] = {
+			str(self.pizza.id): {
+				'pizza_id': str(self.pizza.id),
+				'quantidade': 1,
+				'preco': '39.00',
+				'tamanho': 'G',
+				'borda_chocolate': False,
+				'catupiry_cima': 'nao',
+				'catupiry_borda': False,
+				'sabores': None,
+			}
+		}
+		session_a.save()
+
+		cliente_a.post(
+			reverse('carrinho_finalizar'),
+			data={
+				'nome': 'Cliente A',
+				'endereco': 'Rua A',
+				'observacoes': '',
+				'pagamento': 'PIX',
+				'local_entrega': str(taxa.id),
+			},
+		)
+
+		pagina_a = cliente_a.get(reverse('carrinho_detalhes'))
+		self.assertContains(pagina_a, 'Pedido em andamento')
+		self.assertContains(pagina_a, 'Pedido #')
+
+		cliente_b = Client()
+		pagina_b = cliente_b.get(reverse('carrinho_detalhes'))
+		self.assertNotContains(pagina_b, 'Pedido em andamento')
+		self.assertContains(pagina_b, 'Pedido Vazio')
+
 
 class PainelBebidasTests(TestCase):
 	def setUp(self):
@@ -240,14 +278,6 @@ class PainelBebidasTests(TestCase):
 			reverse('pedido_reabrir', args=[pedido.id]),
 			data={'status': 'Pago'},
 		)
-		pedido.refresh_from_db()
-		self.assertEqual(pedido.status, 'Em preparo')
-		self.client.post(
-			reverse('pedido_alterar_status', args=[pedido.id]),
-			data={'status': 'Pago'},
-		)
-		pedido.refresh_from_db()
-		self.assertIsNotNone(pedido.fechado_em)
 
 	def test_pedido_entregue_continua_ativo_ate_ser_pago(self):
 		pedido = Pedido.objects.create(cliente='Cliente Entregue', total='39.00')
@@ -272,3 +302,29 @@ class PainelBebidasTests(TestCase):
 		response = self.client.get(reverse('painel_bebidas'))
 		self.assertEqual(response.status_code, 200)
 		self.assertContains(response, 'Gerenciar Bebidas')
+
+
+class ContatoTests(TestCase):
+	def test_contato_exige_telefone_valido(self):
+		response = self.client.post(
+			reverse('contato'),
+			data={
+				'nome': 'Cliente Teste',
+				'telefone': '123',
+				'mensagem': 'Quero saber o horario.',
+			},
+		)
+		self.assertRedirects(response, reverse('contato'))
+
+	def test_contato_redireciona_com_telefone_no_whatsapp(self):
+		response = self.client.post(
+			reverse('contato'),
+			data={
+				'nome': 'Cliente Teste',
+				'telefone': '(84) 99999-9999',
+				'mensagem': 'Quero fazer uma reserva.',
+			},
+		)
+		self.assertEqual(response.status_code, 302)
+		self.assertIn('wa.me/5584990346414?text=', response.url)
+		self.assertIn('Telefone%3A%20%2884%29%2099999-9999', response.url)

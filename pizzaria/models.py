@@ -67,6 +67,7 @@ class Pedido(SanitizedModelMixin, models.Model):
 		("Pago", "Pago"),
 	]
 	cliente = models.CharField(max_length=100)
+	cliente_token = models.CharField(max_length=64, blank=True, default='', db_index=True)
 	telefone = models.CharField(max_length=20, default='')
 	endereco = models.TextField(blank=True, null=True)
 	observacao = models.TextField(blank=True, null=True)

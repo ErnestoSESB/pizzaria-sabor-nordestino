@@ -10,6 +10,25 @@ from .carrinho import Carrinho
 from .calculadora_preco import calcular_preco_pizza
 from urllib.parse import quote
 import json
+import uuid
+import re
+
+
+def _ensure_cart_device_owner(request):
+	"""Garante um identificador anônimo por cliente e isola carrinho/pedidos por sessão."""
+	cliente_token = request.session.get('cliente_token')
+	if not cliente_token:
+		cliente_token = uuid.uuid4().hex
+		request.session['cliente_token'] = cliente_token
+
+	carrinho_owner = request.session.get('carrinho_owner_token')
+	if carrinho_owner and carrinho_owner != cliente_token:
+		request.session.pop('carrinho', None)
+		request.session.pop('pedidos_ids', None)
+		request.session.pop('ultimo_pedido_id', None)
+
+	request.session['carrinho_owner_token'] = cliente_token
+	request.session.modified = True
 
 def index(request):
 	return render(request, 'pizzaria/index.html')
@@ -22,9 +41,27 @@ def cardapio(request):
 def contato(request):
 	if request.method == 'POST':
 		nome = request.POST.get('nome', '').strip()
-		email = request.POST.get('email', '').strip()
+		telefone = request.POST.get('telefone', '').strip()
 		mensagem = request.POST.get('mensagem', '').strip()
-		texto = f"Ola! Meu nome e {nome}.\nE-mail: {email}\n\n{mensagem}"
+
+		if len(nome) < 3:
+			messages.error(request, 'Informe um nome valido.')
+			return redirect('contato')
+
+		telefone_numeros = re.sub(r'\D', '', telefone)
+		if len(telefone_numeros) < 10 or len(telefone_numeros) > 11:
+			messages.error(request, 'Informe um numero de telefone valido com DDD.')
+			return redirect('contato')
+
+		if not mensagem:
+			messages.error(request, 'Digite uma mensagem.')
+			return redirect('contato')
+
+		texto = (
+			f"Ola! Meu nome e {nome}.\n"
+			f"Telefone: {telefone}\n\n"
+			f"{mensagem}"
+		)
 		return redirect(f"https://wa.me/5584990346414?text={quote(texto)}")
 	return render(request, 'pizzaria/contato.html')
 
@@ -47,6 +84,7 @@ def escolher_sabores(request):
 
 # Carrinho views
 def carrinho_adicionar(request, pizza_id):
+	_ensure_cart_device_owner(request)
 	carrinho = Carrinho(request)
 	pizza = get_object_or_404(Pizza, id=pizza_id)
 	carrinho.adicionar(pizza=pizza, quantidade=1)
@@ -54,6 +92,7 @@ def carrinho_adicionar(request, pizza_id):
 
 def carrinho_adicionar_pizza(request):
 	if request.method == 'POST':
+		_ensure_cart_device_owner(request)
 		carrinho = Carrinho(request)
 		quer_bebida = request.POST.get('quer_bebida')
 		bebida_ids = request.POST.getlist('bebida_id[]')
@@ -124,6 +163,7 @@ def carrinho_adicionar_pizza(request):
 
 @require_POST
 def carrinho_remover(request, item_id):
+	_ensure_cart_device_owner(request)
 	carrinho = Carrinho(request)
 	adicional = request.POST.get('adicional')
 	if adicional:
@@ -133,15 +173,18 @@ def carrinho_remover(request, item_id):
 	return redirect('carrinho_detalhes')
 
 def carrinho_detalhes(request):
+	_ensure_cart_device_owner(request)
 	carrinho = Carrinho(request)
 	from .models import TaxaEntrega
+	cliente_token = request.session.get('cliente_token')
 	pedidos_em_andamento = []
-	ids_pedidos = request.session.get('pedidos_ids', [])
-	ultimo_pedido_id = request.session.get('ultimo_pedido_id')
-	if ultimo_pedido_id and ultimo_pedido_id not in ids_pedidos:
-		ids_pedidos.append(ultimo_pedido_id)
-	if ids_pedidos:
-		pedidos_em_andamento = list(Pedido.objects.filter(id__in=ids_pedidos).prefetch_related('itens__pizza', 'itens__bebida').order_by('-criado_em'))
+	if cliente_token:
+		pedidos_em_andamento = list(
+			Pedido.objects.filter(cliente_token=cliente_token)
+			.exclude(status__in=['Pago', 'Entregue'])
+			.prefetch_related('itens__pizza', 'itens__bebida')
+			.order_by('-criado_em')
+		)
 		for pedido in pedidos_em_andamento:
 			for item in pedido.itens.all():
 				item.sabores_nomes = []
@@ -203,6 +246,7 @@ def carrinho_detalhes(request):
 
 @require_POST
 def carrinho_finalizar(request):
+	_ensure_cart_device_owner(request)
 	carrinho = Carrinho(request)
 	if len(carrinho) == 0:
 		return redirect('cardapio')
@@ -252,6 +296,7 @@ def carrinho_finalizar(request):
 	# Criar pedido no banco de dados
 	pedido = Pedido.objects.create(
 		cliente=nome,
+		cliente_token=request.session.get('cliente_token', ''),
 		endereco=endereco,
 		observacao=observacoes,
 		forma_pagamento=pagamento,
